@@ -243,6 +243,7 @@
     { x: 14.0 * T, y: 18.8 * T, text: '신기한 영상 해변', icon: '🎬' },
     { x: 29.6 * T, y: 18.0 * T, text: '안전한 공유 광장', icon: '📷' },
     { x: 17.6 * T, y: 12.0 * T, text: 'AI 탐험대 인증 센터', icon: '🏅' },
+    { x: 24.0 * T, y: 26.0 * T, text: '소문 바다', icon: '🫧' },
   ];
   SIGNS.forEach((s) => { s.fp = [Math.floor(s.x / T), Math.floor(s.y / T) - 1, 1, 1]; });
 

@@ -1,280 +1,181 @@
-// AI 탐험대! 미션 내용 + 문제 화면
-// 학습 기준: AI리터러시 Part3 기본 워크북(1차시 PPT 19쪽)
-//  - 진짜처럼 보여도 다 진짜는 아니에요 / 멈춰요·물어봐요·다시 찾아봐요 / 확인해요·비교해요 / 올리기 전 확인
-// 모든 인물·사건·학교 알림은 게임 속 '가상' 예시입니다.
+// AI 탐험대! 체험형 미니게임
+// 학습 기준: AI리터러시 Part3 기본 워크북(1차시 PPT 19쪽) — 학습 목표와 판단 기준은 그대로, 활동 방식만 체험형으로 바꿨어요.
+//  ① AI가 만든 사진·영상도 진짜처럼 보일 수 있어요  ② 멈춰요 → 물어봐요 → 다시 찾아봐요 (+ 확인해요·비교해요)
+//  ③ 출처를 살펴보고 비교해요 (말한 사람 수보다 출처)  ④ 올리기 전에 한 번 더 확인해요 (친구 얼굴·이름)
+// 모든 인물·영상·사진·학교 알림은 게임 속 '가상' 예시예요.
 (function () {
   'use strict';
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const NUM = ['①', '②', '③', '④', '⑤', '⑥'];
   const O = '#26344f';
 
   // =====================================================================
   //  미션 내용
   // =====================================================================
   const DEF = {
-    intro: {
-      zone: '🏅 AI 탐험대 인증 센터', title: '우리 탐험대의 세 가지 약속', npc: 'captain',
-      steps: [{ type: 'promise' }],
-    },
+    intro: { zone: '🏅 AI 탐험대 인증 센터', title: '우리 탐험대의 세 가지 약속', npc: 'captain', steps: [{ type: 'promise' }] },
 
-    // ---------------- 미션 1: 신기한 영상 해변 ----------------
+    // ① 수상한 영상 탐정 — 신기한 영상 해변
     m1: {
-      zone: '🎬 신기한 영상 해변', title: '미션 1 · 진짜처럼 보여도 확인해요', npc: 'octopus',
+      zone: '🎬 신기한 영상 해변', title: '미니게임 ① 수상한 영상 탐정', npc: 'octopus',
       steps: [
         {
-          type: 'choice', scene: 'tv_dog',
-          say: '강아지가 사람 목소리로 말하는 영상이 올라왔어요!',
-          q: '이 영상을 보고 가장 먼저 어떻게 해야 할까요?',
-          opts: [
-            { t: '진짜라고 확신하고 친구에게 바로 보내요.', fb: '잠깐! 바로 보내면 사실이 아닐 수도 있는 내용이 퍼질 수 있어요. 먼저 멈춰요.' },
-            { t: '영상을 누가 만들었는지 살펴보고 확인해요.', ok: true },
-            { t: '강아지는 언제나 사람 말을 할 수 있다고 믿어요.', fb: '영상 하나만 보고 믿기에는 근거가 부족해요. 확인이 필요해요.' },
+          type: 'clues',
+          say: '말하는 강아지 영상이 올라왔어요! 돋보기를 끌어서 단서 3개를 찾아요.',
+          clues: [
+            { id: 'who', tool: '👤 누가 만들었을까?', x: 56, y: 103, w: 140, h: 22, card: '올린 사람 이름이 없어요. 누가 만들었는지 알 수 없어요.' },
+            { id: 'orig', tool: '🎞️ 원래 영상이 있을까?', x: 30, y: 12, w: 56, h: 16, card: '"퍼온 영상"이라고만 적혀 있어요. 처음 올린 곳을 찾을 수 없어요.' },
+            { id: 'other', tool: '📚 다른 자료에서도 확인할까?', x: 102, y: 16, w: 86, h: 44, card: '가상 동물 도감을 찾아보니 "강아지는 사람처럼 말하지 못해요"래요. 편집이나 AI로 만든 영상일 수 있어요.' },
           ],
-          explain: '맞아요! 영상은 편집하거나 AI로 만들 수도 있어요. 영상만 보고 바로 믿지 말고, 누가 만들었는지 확인해요.',
+          q: '단서를 모두 모았어요. 이 영상, 어떻게 생각해야 할까요?',
+          opts: [
+            { ic: '😱', t: '수상해 보이니까 무조건 가짜!', fb: '겉모습만 보고 정하면 틀릴 수 있어요. 우리는 단서(만든 사람·원래 영상·다른 자료)로 판단해요.' },
+            { ic: '🔍', t: '영상만 보고 정하지 말고, 만든 사람과 근거를 확인해요', ok: true },
+            { ic: '😍', t: '진짜 같으니까 친구에게 보내자!', fb: '진짜처럼 보여도 만든 영상일 수 있어요. 확인하기 전에는 보내지 않아요.' },
+          ],
+          explain: '탐정 도장 쾅! 영상만 보고 확정하지 말고, 만든 사람과 근거를 확인해요. 확인 전에는 믿거나 퍼뜨리지 않아요.',
         },
         {
-          type: 'choice',
-          say: '문어 박사의 생각 질문이에요. 🤔',
-          q: '진짜처럼 보이는 영상을 왜 한 번 더 확인해야 할까요?',
-          opts: [
-            { t: '이상해 보이는 영상은 모두 AI가 만든 가짜라서', fb: '이상해 보여도 진짜로 찍은 영상일 수 있어요. 겉모습만으로는 알 수 없어서 확인하는 거예요.' },
-            { t: '영상은 전부 거짓말이라서', fb: '모든 영상이 거짓은 아니에요. 진짜인지 아닌지 모를 때 확인하는 거예요.' },
-            { t: 'AI나 편집으로 진짜처럼 만들 수 있어서', ok: true },
-            { t: '진짜처럼 보이면 진짜라서 확인할 필요가 없어요', fb: '진짜처럼 보여도 만든 것일 수 있어요. 그래서 한 번 더 확인해요.' },
-          ],
-          explain: '정답! 진짜처럼 보여도 만든 것일 수 있고, 이상해 보여도 진짜일 수 있어요. 겉모습만으로는 정할 수 없으니 확인해요.',
-        },
-        {
-          type: 'multi', scene: 'photos',
-          say: '이번엔 사진이에요. 콩이의 얼굴 자리에 몽실이 얼굴이 들어간 사진이 올라왔어요.',
-          q: '친구 얼굴이 바뀐 사진을 발견했어요. 어떻게 하면 좋을까요?',
-          hint: '알맞은 행동을 모두 골라요. (3개)',
-          opts: [
-            { t: '진짜 사진이라고 바로 믿지 않아요.', ok: true },
-            { t: '재미있으니까 반 단체방에 퍼뜨려요.', fb: '친구가 속상할 수 있고, 사실이 아닌 사진이 퍼질 수 있어요.' },
-            { t: '친구 얼굴이 허락 없이 쓰였는지 걱정하고 친구 마음을 생각해요.', ok: true },
-            { t: '부모님이나 선생님 같은 믿을 만한 어른에게 알려요.', ok: true },
-          ],
-          explain: '잘했어요! 얼굴이 바뀐 사진은 사람을 속이거나 친구를 속상하게 할 수 있어요. 바로 믿지 말고, 믿을 만한 어른에게 알려요.',
-        },
-        {
-          type: 'ox',
-          say: '마지막은 문어 박사의 O·X 퀴즈예요!',
+          type: 'stamp',
+          say: '탐정 도장 놀이! 카드에 ⭕ 또는 ❌ 도장을 끌어다 찍어요.',
           items: [
-            { t: 'AI는 진짜처럼 보이는 사진이나 영상을 만들 수 있어요.', ans: true, explain: '맞아요! 그래서 진짜 같아도 한 번 더 확인해요.', fb: 'AI는 진짜 같은 사진과 영상을 만들 수 있어요.' },
-            { t: 'AI로 만든 그림이나 영상은 모두 나쁜 거예요.', ans: false, explain: '맞아요! AI로 만든 것도 공부나 그림 그리기에 쓸모 있게 쓸 수 있어요. 진짜인 척 사람을 속이는 것이 문제예요.', fb: 'AI로 만든 것이 모두 나쁜 건 아니에요. 쓸모 있게 쓰이기도 해요.' },
-            { t: '화면에서 이상한 점을 하나 찾으면, AI가 만든 것이라고 확실히 알 수 있어요.', ans: false, explain: '맞아요! 이상한 점만으로는 확실히 알 수 없어요. 누가 만들었는지, 다른 곳에서도 확인해요.', fb: '이상한 점 하나로는 확실히 알 수 없어요. 그래서 출처를 확인해요.' },
-            { t: '실제로 찍은 사진도 잘못된 설명과 함께 퍼질 수 있어요.', ans: true, explain: '맞아요! 진짜 사진이어도 설명이 틀릴 수 있어요. 그래서 내용도 확인해요.', fb: '진짜로 찍은 사진에도 틀린 설명이 붙을 수 있어요.' },
+            { t: 'AI는 진짜처럼 보이는 사진이나 영상을 만들 수 있어요.', ans: true, explain: '맞아요! 그래서 진짜 같아도 한 번 더 확인해요.' },
+            { t: 'AI로 만든 그림이나 영상은 모두 나쁘고 거짓이에요.', ans: false, explain: 'AI로 만든 것도 공부·그림에 쓸모 있게 쓰여요. 진짜인 척 속이는 게 문제예요.' },
+            { t: '이상한 점을 하나 찾으면 AI가 만든 것이라고 확실히 알 수 있어요.', ans: false, explain: '겉모습만으로는 확실히 알 수 없어요. 만든 사람과 다른 자료로 확인해요.' },
+            { t: '실제로 찍은 사진도 틀린 설명과 함께 퍼질 수 있어요.', ans: true, explain: '맞아요! 진짜 사진이어도 설명이 틀릴 수 있어요.' },
+            { t: '엄마가 보내 준 가족사진이니까, 사진에 붙은 설명도 무조건 모두 사실이에요.', ans: false, explain: '가족이 보낸 사진은 대개 믿을 수 있지만 "무조건"은 아니에요. 궁금하면 엄마께 여쭤봐요.' },
           ],
         },
       ],
     },
 
-    // ---------------- 미션 2: 질문하는 마을 ----------------
+    // ② 소문을 멈춰라! — 소문 바다(부두)
     m2: {
-      zone: '🏘️ 질문하는 마을', title: '미션 2 · 모르면 물어봐요', npc: 'turtle',
+      zone: '🫧 소문 바다', title: '미니게임 ② 소문을 멈춰라!', npc: 'fish',
+      steps: [
+        {
+          type: 'bubbles',
+          say: '소문 물방울이 친구들에게 가고 있어! 물방울을 누르거나 ✋ 멈춰요! 버튼을 눌러 줘. 천천히 해도 괜찮아!',
+          rumors: [
+            {
+              t: '내일 학교 쉰대!', ic: '🏫',
+              opts: [
+                { t: '선생님께 여쭤보고 학교 공식 알림을 확인해요', ok: true },
+                { t: '친구들에게 빨리 알려 줘요', fb: '확인하지 않은 소문을 퍼뜨리면 친구들이 헷갈려요.' },
+                { t: '소문이니까 무조건 거짓말이에요', fb: '아직 확인 전이라 거짓이라고 정할 수도 없어요. "확인이 필요한 소문"이에요.' },
+              ],
+              why: '학교 일정은 선생님과 학교 공식 알림이 가장 정확해요.',
+            },
+            {
+              t: '강아지가 사람 말을 한대!', ic: '🐶',
+              opts: [
+                { t: '영상이 있으니까 진짜예요', fb: '영상은 편집하거나 AI로 만들 수도 있어요.' },
+                { t: '누가 만든 영상인지 보고, 어른과 다른 자료를 찾아봐요', ok: true },
+                { t: '신기하니까 단체방에 올려요', fb: '확인 전에 올리면 소문이 더 퍼져요.' },
+              ],
+              why: '영상만 보고 정하지 말고 만든 사람과 근거를 확인해요.',
+            },
+            {
+              t: '친구 사진이 바뀌었대!', ic: '🖼️',
+              opts: [
+                { t: '재밌으니까 나도 보내요', fb: '친구가 속상할 수 있고, 사실이 아닌 사진이 퍼져요.' },
+                { t: '못 본 척 그냥 넘어가요', fb: '친구가 곤란할 수 있어요. 믿을 만한 어른에게 알려 도움을 받아요.' },
+                { t: '퍼뜨리지 않고 부모님이나 선생님께 알려요', ok: true },
+              ],
+              why: '친구 얼굴이 허락 없이 쓰였을 수 있어요. 어른에게 알려요.',
+            },
+          ],
+          explain: '소문 3개를 모두 멈췄어요! 확인되지 않은 정보는 바로 믿거나 퍼뜨리지 않고, 먼저 멈춘 뒤 확인해요.',
+        },
+      ],
+    },
+
+    // ③ 누구에게 물어볼까? — 질문하는 마을
+    m3: {
+      zone: '🏘️ 질문하는 마을', title: '미니게임 ③ 누구에게 물어볼까?', npc: 'turtle',
+      steps: [
+        {
+          type: 'deliver',
+          say: '상황 카드를 끌어서 도움을 줄 친구에게 배달해요. (눌러서 고른 뒤 받을 사람을 눌러도 돼요)',
+          helpers: [
+            { id: 'teacher', spr: 'turtle', name: '선생님' },
+            { id: 'parent', spr: 'parents', name: '부모님' },
+            { id: 'notice', spr: 'notice', name: '학교 공식 안내' },
+            { id: 'anon', spr: 'anon', name: '익명 댓글' },
+          ],
+          cards: [
+            { id: 'rumor', ic: '🏫', t: '"내일 학교 쉰대!" 소문이 돌아요', good: ['teacher', 'notice'], okay: ['parent'],
+              thanks: { teacher: '잘 물어봤어요! 선생님이 내일 일정을 알려 줄게요.', notice: '학교 공식 안내에서 날짜를 확인해요!', parent: '부모님과 함께 학교 알림을 확인해 봐요.' } },
+            { id: 'photo', ic: '🖼️', t: '친구 얼굴이 바뀐 사진이 올라왔어요', good: ['teacher', 'parent'],
+              thanks: { teacher: '알려 줘서 고마워요. 친구를 함께 도와줄게요.', parent: '잘했어. 함께 어떻게 할지 생각해 보자.' } },
+            { id: 'video', ic: '🎬', t: '진짜인지 모르겠는 인터넷 영상이 있어요', good: ['teacher', 'parent'],
+              thanks: { teacher: '좋은 질문이에요! 누가 만들었는지 같이 찾아봐요.', parent: '같이 다른 자료도 찾아보자.' } },
+          ],
+          wrong: {
+            anon: '누가 썼는지 모르는 댓글은 믿을 만한 도움이 아니에요.',
+            notice: '학교 공식 안내는 학교 일정을 알려 주는 곳이에요. 이 일은 믿을 만한 어른에게 물어봐요.',
+          },
+          explain: '배달 완료! 혼자 판단하기 어려우면 부모님·선생님 같은 믿을 만한 어른에게 물어봐요. 알맞은 사람은 여러 명일 수 있어요.',
+        },
+      ],
+    },
+
+    // ④ 사실 확인 연구소 — 사실 확인 도서관
+    m4: {
+      zone: '📚 사실 확인 연구소', title: '미니게임 ④ 사실 확인 연구소', npc: 'penguin', virtual: true,
+      steps: [
+        { type: 'lab', say: '"내일 학교 쉰대!" 정보 카드 3장을 뒤집고 출처 도장을 확인해요.' },
+        {
+          type: 'scale',
+          say: '익명 글과 친구 이야기는 "쉰다", 학교 알림은 "정상 수업"이래요.',
+          q: '무엇으로 판단해야 할까요?',
+          opts: [
+            { ic: '👥', t: '말한 사람이 더 많은 쪽', fb: '친구도 같은 소문을 듣고 말했을 수 있어요. 같은 소문이 여러 번 들려도 근거가 늘어나지 않아요.' },
+            { ic: '🏷️', t: '출처가 믿을 만한 쪽', ok: true },
+          ],
+          explain: '정답! 말한 사람 수보다 출처가 중요해요. 학교 일정은 학교 공식 알림과 선생님 안내로 확인해요.',
+        },
+      ],
+    },
+
+    // ⑤ 사진 속 비밀을 찾아라! — 안전한 공유 광장
+    m5: {
+      zone: '📷 안전한 공유 광장', title: '미니게임 ⑤ 사진 속 비밀을 찾아라!', npc: 'jelly',
+      steps: [{ type: 'photo', say: '포스터 사진을 학급 게시판에 올리기 전에 확인해요!' }],
+    },
+
+    // 최종 미션 — AI 탐험대 인증
+    fin: {
+      zone: '🏅 AI 탐험대 인증 센터', title: '최종 미션 · AI 탐험대 인증', npc: 'captain', lamps: true,
       steps: [
         {
           type: 'match',
-          say: '상황 카드와 도움을 줄 사람 카드를 선으로 이어 봐요.',
-          q: '어떤 상황에서 누구에게 물어보면 좋을까요?',
-          hint: '왼쪽 상황을 누른 다음, 오른쪽 카드를 눌러 이어요. 같은 카드를 여러 번 써도 돼요.',
+          say: '세 가지 행동 카드를 알맞은 상황에 이어요!',
+          q: '이럴 때 어떤 행동을 할까요?',
+          hint: '왼쪽 상황을 누른 다음, 오른쪽 행동 카드를 눌러 이어요.',
           left: [
-            { id: 'a', icon: '🖼️', t: '친구 얼굴이 바뀐 사진이 올라왔어요.' },
-            { id: 'b', icon: '🏫', t: '"내일 학교 쉰대!" 라는 소문을 들었어요.' },
-            { id: 'c', icon: '🐶', t: '말하는 강아지 영상이 진짜인지 궁금해요.' },
+            { id: 'a', icon: '😲', t: '깜짝 놀랄 영상을 봤어요. 바로 보내고 싶어요!' },
+            { id: 'b', icon: '🤔', t: '진짜인지 혼자 판단하기 어려워요.' },
+            { id: 'c', icon: '📚', t: '다른 곳에서도 같은 내용인지 궁금해요.' },
           ],
           right: [
-            { id: 'parent', icon: '👨‍👩‍👧', t: '부모님' },
-            { id: 'teacher', icon: '🧑‍🏫', t: '선생님' },
-            { id: 'notice', icon: '📢', t: '학교 공식 알림' },
-            { id: 'stranger', icon: '💬', t: '처음 보는 사람의 댓글' },
-          ],
-          good: { a: ['parent', 'teacher'], b: ['teacher', 'notice', 'parent'], c: ['parent', 'teacher'] },
-          fb: {
-            stranger: '누가 썼는지 모르는 댓글은 믿을 만한 도움이 아니에요. 믿을 만한 어른에게 물어봐요.',
-            'a:notice': '학교 알림은 학교 일정을 알려 주는 곳이에요. 친구 사진 일은 부모님이나 선생님께 알려요.',
-            'c:notice': '학교 알림은 학교 일정을 알려 주는 곳이에요. 영상이 궁금할 땐 부모님이나 선생님께 물어봐요.',
-          },
-          note: { 'b:parent': '부모님께 여쭤봐도 좋아요. 부모님과 함께 학교 알림을 확인해요.' },
-          explain: '잘 이었어요! 학교 일정은 선생님과 학교 공식 알림으로, 이상한 사진이나 영상은 부모님·선생님 같은 믿을 만한 어른에게 물어봐요.',
-        },
-        {
-          type: 'choice', sayWho: 'fish',
-          say: '얘들아! 인터넷에서 내일 학교 쉰다고 했어! 빨리 다 알려 주자!',
-          q: '소문을 전하는 물고기에게 뭐라고 말해 주면 좋을까요?',
-          opts: [
-            { t: '와! 다른 친구들에게도 빨리 알려 줄게!', fb: '확인하지 않은 소문을 퍼뜨리면 친구들이 헷갈릴 수 있어요. 먼저 멈춰요.' },
-            { t: '인터넷에 올라왔으니까 분명히 진짜야!', fb: '인터넷에 올라왔다고 모두 사실은 아니에요. 누가 쓴 글인지 확인해야 해요.' },
-            { t: '소문은 무조건 거짓말이야! 신경 쓰지 마.', fb: '아직 확인하지 않았으니 거짓이라고 정할 수도 없어요. 지금은 "확인이 필요한 소문"이에요.' },
-            { t: '잠깐! 선생님께 여쭤보고 학교 알림도 확인해 보자.', ok: true },
-          ],
-          explain: '맞아요! 진짜인지 거짓인지 아직 모를 땐 퍼뜨리지 말고 먼저 확인해요. "확인이 필요하다"와 "거짓이다"는 서로 달라요.',
-        },
-        {
-          type: 'match', oneToOne: true,
-          say: '거북 선생님의 낱말 공부! 비슷한 뜻을 가진 말끼리 이어 봐요.',
-          q: '같은 뜻끼리 선으로 이어요.',
-          hint: '왼쪽 낱말을 누른 다음, 알맞은 뜻을 눌러요.',
-          left: [
+            { id: 'ask', icon: '🙋', t: '물어봐요' },
+            { id: 'search', icon: '🔍', t: '다시 찾아봐요 (확인해요·비교해요)' },
             { id: 'stop', icon: '✋', t: '멈춰요' },
-            { id: 'check', icon: '🔎', t: '확인해요' },
-            { id: 'compare', icon: '⚖️', t: '비교해요' },
           ],
-          right: [
-            { id: 'r2', icon: '👀', t: '누가 만들었는지 봐요.' },
-            { id: 'r3', icon: '📚', t: '다른 곳에서도 봐요.' },
-            { id: 'r1', icon: '🙅', t: '바로 믿지 않아요.' },
-          ],
-          good: { stop: ['r1'], check: ['r2'], compare: ['r3'] },
-          fb: {},
-          explain: '훌륭해요! 멈춰요는 바로 믿지 않기, 확인해요는 누가 만들고 전달했는지 보기, 비교해요는 다른 곳의 정보와 견주어 보기예요.',
-        },
-      ],
-    },
-
-    // ---------------- 미션 3: 사실 확인 도서관 ----------------
-    m3: {
-      zone: '📚 사실 확인 도서관', title: '미션 3 · 출처를 확인하고 비교해요', npc: 'penguin',
-      virtual: true,
-      steps: [
-        {
-          type: 'sources',
-          say: '"내일 학교 쉬는 날이래!" 이 말이 맞는지 자료 세 장을 살펴봐요.',
-          q: '먼저 🔍 버튼을 눌러 자료마다 누가 만들었는지 확인해요.',
-          q2: '학교 일정을 확인하기에 가장 알맞은 자료는 무엇일까요?',
-          answer: 'B',
-          fb: { A: '누가 썼는지 알 수 없는 글이에요. 학교 일정의 근거로 삼기 어려워요.', C: '친구도 어디선가 들은 이야기예요. 직접 확인한 정보가 아닐 수 있어요.' },
-          explain: '정답! 학교 일정은 학교가 직접 보낸 공식 알림이 가장 알맞아요. 알림에 적힌 날짜가 "내일"과 맞는지도 함께 확인해요.',
-        },
-        {
-          type: 'choice', scene: 'mini_sources',
-          say: '게시글과 친구 메시지가 똑같이 "쉬는 날"이라고 말하고 있어요.',
-          q: '두 곳에서 같은 말을 했으니 사실이라고 정해도 될까요?',
-          opts: [
-            { t: '네, 두 번이나 들었으니 사실이에요.', fb: '친구도 같은 게시글을 보고 말했을 수 있어요. 같은 소문을 여러 번 들어도 근거가 늘어나는 건 아니에요.' },
-            { t: '아니요, 누가 만든 정보인지 확인하고 공식 자료와 비교해야 해요.', ok: true },
-          ],
-          explain: '맞아요! 여러 사람이 말해도 출처가 같은 소문일 수 있어요. 누가 만든 정보인지 확인하고, 공식 자료와 비교해요.',
-        },
-        {
-          type: 'multi', scene: 'mini_sources',
-          say: '게시글은 "쉰다", 학교 알림은 "정상 수업"이래요. 정보가 서로 달라요!',
-          q: '서로 다른 정보가 있을 때 어떻게 하면 좋을까요?',
-          hint: '알맞은 것을 모두 골라요. (2개)',
-          opts: [
-            { t: '더 많은 사람이 말한 쪽을 믿어요.', fb: '많은 사람이 말해도 틀릴 수 있어요. 출처가 믿을 만한지가 중요해요.' },
-            { t: '학교 공식 알림의 날짜와 내용을 확인해요.', ok: true },
-            { t: '단체방에 먼저 올려서 친구들에게 물어봐요.', fb: '확인하기 전에 올리면 소문이 더 퍼질 수 있어요. 믿을 만한 어른과 공식 자료로 확인해요.' },
-            { t: '선생님께 여쭤봐요.', ok: true },
-          ],
-          explain: '훌륭해요! 서로 다른 정보가 있으면 학교 공식 알림(날짜도 꼭!)과 선생님의 안내로 확인해요. 이것이 "다시 찾아봐요"와 "비교해요"예요.',
-        },
-      ],
-    },
-
-    // ---------------- 미션 4: 안전한 공유 광장 ----------------
-    m4: {
-      zone: '📷 안전한 공유 광장', title: '미션 4 · 올리기 전에 한 번 더', npc: 'jelly',
-      steps: [
-        {
-          type: 'hotspot', scene: 'share_raw',
-          say: '바다표범이 만든 포스터를 사진으로 찍었어요. 그런데 사진에 다른 것도 찍혔어요!',
-          q: '사진을 올리기 전에 확인해야 할 부분 2곳을 눌러 찾아요.',
-          spots: [
-            { id: 'face', need: true, x: 152, y: 36, w: 48, h: 48, label: '친구 얼굴', fb: '찾았어요! 친구 얼굴이 나왔어요. 친구 얼굴은 허락 없이 공개하면 안 돼요.' },
-            { id: 'tag', need: true, x: 96, y: 88, w: 58, h: 30, label: '이름표', fb: '찾았어요! 이름이 보이면 누구인지 알 수 있어요. 이름도 소중한 개인정보예요.' },
-            { id: 'poster', x: 52, y: 8, w: 82, h: 66, fb: '포스터는 내 활동이에요. 잘 보이면 좋아요! 👍 다른 곳을 찾아봐요.' },
-            { id: 'plant', x: 4, y: 56, w: 32, h: 44, fb: '화분은 괜찮아요. 개인정보가 아니에요. 다른 곳을 찾아봐요.' },
-            { id: 'clock', x: 158, y: 0, w: 28, h: 26, fb: '시계는 괜찮아요. 다른 곳을 찾아봐요.' },
-            { id: 'window', x: 6, y: 6, w: 44, h: 34, fb: '창문은 괜찮아요. 다른 곳을 찾아봐요.' },
-          ],
-          explain: '모두 찾았어요! 사진에 친구 얼굴과 이름표가 함께 찍혀 있었어요.',
-        },
-        {
-          type: 'choice', scene: 'share_raw_small',
-          say: '친구 얼굴과 이름표가 찍힌 사진이에요.',
-          q: '이 사진을 어떻게 할까요?',
-          opts: [
-            { t: '그대로 바로 올려요.', fb: '친구 얼굴과 이름이 그대로 공개돼요. 올리기 전에 한 번 더 확인해요.' },
-            { t: '친구 얼굴이나 이름이 드러나지 않게 고치고, 공유해도 되는지 확인해요.', ok: true },
-          ],
-          explain: '맞아요! 내 활동만 잘 보이게 다시 찍거나, 친구 얼굴과 이름표가 보이지 않게 고쳐요. 꼭 올려야 하는 사진인지도 생각해요.',
-          afterScene: 'share_fixed',
-        },
-        {
-          type: 'checklist', scene: 'share_fixed',
-          say: '고친 사진이에요! 이제 올리기 전에 마지막으로 확인해요.',
-          q: '공유 전 체크리스트를 완성해요. 알맞은 질문 4개를 골라 넣어요.',
-          pool: [
-            { t: '내 활동이 잘 보이나요?', ok: true },
-            { t: '"좋아요"를 많이 받을 수 있나요?', fb: '"좋아요" 수보다 안전이 먼저예요.' },
-            { t: '친구 얼굴이 나오지 않나요?', ok: true },
-            { t: '이름 등 개인정보가 보이지 않나요?', ok: true },
-            { t: '친구 이름을 크게 써서 누군지 알려 줬나요?', fb: '이름은 개인정보예요. 사진에 보이지 않게 해요.' },
-            { t: '공유해도 되는 내용인지, 선생님이 안내한 곳인지 확인했나요?', ok: true },
-          ],
-          explain: '체크리스트가 모두 "네!"예요. 이제 선생님이 안내한 곳에 안전하게 올릴 수 있어요!',
-        },
-      ],
-    },
-
-    // ---------------- 미션 5: 최종 시험 ----------------
-    m5: {
-      zone: '🏅 AI 탐험대 인증 센터', title: '최종 시험 · 등대의 불을 켜요', npc: 'captain', lamps: true,
-      steps: [
-        {
-          type: 'yesno',
-          say: '첫 번째 등불이에요!',
-          q: 'AI가 만든 영상이 실제처럼 보일 수 있나요?',
-          yes: '네, 그럴 수 있어요', no: '아니요, 그럴 수 없어요', ans: true,
-          fb: 'AI는 진짜처럼 보이는 영상을 만들 수 있어요. 그래서 확인이 필요해요.',
-          explain: '맞아요. AI가 만든 영상도 실제처럼 보일 수 있어요. 그래서 진짜 같아도 한 번 더 확인해요.',
-        },
-        {
-          type: 'choice',
-          say: '두 번째 등불이에요!',
-          q: '인터넷에 올라온 내용을 보고 깜짝 놀랐어요. 바로 친구에게 보내도 될까요?',
-          opts: [
-            { t: '바로 보내요. 놀라운 소식은 빨리 알려야 해요.', fb: '확인하지 않고 보내면 사실이 아닌 내용이 퍼질 수 있어요.' },
-            { t: '댓글이 많으니까 진짜예요. 보내요.', fb: '댓글이나 조회수가 많아도 사실이라는 근거는 아니에요.' },
-            { t: '바로 보내지 않고, 먼저 멈춰서 확인해요.', ok: true },
-            { t: 'AI가 만든 것 같으면 무조건 거짓이라고 알려요.', fb: 'AI가 만들었는지, 거짓인지는 겉모습만으로 정할 수 없어요. 먼저 확인해요.' },
-          ],
-          explain: '맞아요! 놀라운 내용일수록 바로 보내지 말고 먼저 멈춰서 확인해요.',
-        },
-        {
-          type: 'multi',
-          say: '세 번째 등불이에요!',
-          q: '모르는 정보를 확인하고 싶을 때 할 수 있는 행동 두 가지는 무엇일까요?',
-          hint: '알맞은 것을 모두 골라요. (2개)',
-          opts: [
-            { t: '믿을 만한 어른에게 물어봐요.', ok: true },
-            { t: '가장 먼저 본 글을 그대로 믿어요.', fb: '먼저 봤다고 맞는 정보는 아니에요.' },
-            { t: '친구 여러 명에게 퍼뜨려서 반응을 봐요.', fb: '확인하기 전에 퍼뜨리면 소문이 커질 수 있어요.' },
-            { t: '공식 자료나 다른 믿을 만한 자료에서 다시 찾아봐요.', ok: true },
-          ],
-          explain: '정답! 믿을 만한 어른에게 물어보고, 공식 자료나 다른 믿을 만한 자료에서 다시 찾아봐요.',
-        },
-        {
-          type: 'yesno',
-          say: '네 번째 등불이에요!',
-          q: '친구의 얼굴이 나온 사진을 친구 허락 없이 공유해도 될까요?',
-          yes: '네, 괜찮아요', no: '아니요, 안 돼요', ans: false,
-          fb: '친구 얼굴은 친구의 소중한 개인정보예요. 허락 없이 공유하면 친구가 속상할 수 있어요.',
-          explain: '맞아요! 친구 얼굴이나 이름은 허락 없이 공개하지 않아요.',
+          good: { a: ['stop'], b: ['ask'], c: ['search'] }, oneToOne: true, fb: {},
+          explain: '완벽해요! 실제 생활에서는 이 행동들을 함께 쓰기도 해요. 예를 들어 어른에게 물어보면서 같이 다시 찾아볼 수 있어요.',
         },
         {
           type: 'order',
-          say: '마지막 등불이에요! 우리 탐험대의 약속을 완성해요.',
+          say: '마지막! 약속 카드를 차례대로 놓아요.',
           q: '세 가지 행동 카드를 차례대로 놓아 약속을 완성해요.',
           cards: [
             { id: 'search', icon: '🔍', t: '다시 찾아봐요' },
             { id: 'stop', icon: '✋', t: '멈춰요' },
             { id: 'ask', icon: '🙋', t: '물어봐요' },
           ],
-          explain: '완성! 멈춰요 → 물어봐요 → 다시 찾아봐요. 실제 생활에서는 어른에게 물어보면서 함께 다시 찾아봐도 좋아요.',
+          explain: '완성! 멈춰요 → 물어봐요 → 다시 찾아봐요. 상황에 따라 함께 쓰거나 순서를 바꿔 써도 좋아요.',
         },
       ],
     },
@@ -309,7 +210,7 @@
         g.fillStyle = O; g.beginPath(); g.moveTo(110 * s.k, 50 * s.k); g.lineTo(98 * s.k, 64 * s.k); g.lineTo(120 * s.k, 55 * s.k); g.fill();
         g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(111 * s.k, 51 * s.k); g.lineTo(101 * s.k, 61 * s.k); g.lineTo(118 * s.k, 54 * s.k); g.fill();
         Tx('나는 사람처럼', 145, 31, 8.5); Tx('이야기할 수 있어!', 145, 45, 8.5);
-        RR(32, 15, 46, 11, 5, 'rgba(38,52,79,.75)'); Tx('▶ 인기 영상', 55, 20.8, 6.4, '#ffffff');
+        RR(32, 15, 50, 11, 5, 'rgba(38,52,79,.75)'); Tx('▶ 퍼온 인기 영상', 57, 20.8, 6.2, '#ffffff');
         // 재생 막대
         R(28, 104, 164, 16, '#26344f'); R(46, 108, 140, 2, '#5d6b8a'); R(46, 108, 90, 2, '#ff6b6b'); R(135, 106, 3, 6, '#ffffff');
         g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(33 * s.k, 106 * s.k); g.lineTo(33 * s.k, 114 * s.k); g.lineTo(40 * s.k, 110 * s.k); g.fill();
@@ -391,22 +292,27 @@
   }
 
   // =====================================================================
-  //  문제 화면 엔진
+  //  미니게임 엔진
   // =====================================================================
   let cur = null;
   function open(id, hooks) {
     const def = DEF[id];
-    cur = { id, def, hooks, i: 0, t0: performance.now(), timers: [], locked: false };
+    cur = { id, def, hooks, i: 0, t0: performance.now(), timers: [], rafs: [], locked: false };
     $('qNpc').src = PX.url(def.npc, 'idle', 5);
-    $('qZone').textContent = def.zone;
+    $('qZone').textContent = def.zone + (hooks.practice ? ' · 다시 공부하기' : '');
     $('qTitle').textContent = def.title;
     $('quiz').hidden = false;
     $('quiz').classList.toggle('lamps', !!def.lamps);
     renderStep();
   }
+  function stopTimers() {
+    for (const t of cur.timers) { clearInterval(t); clearTimeout(t); }
+    for (const r of cur.rafs) cancelAnimationFrame(r.id);
+    cur.timers = []; cur.rafs = [];
+  }
   function close(done) {
     if (!cur) return;
-    for (const t of cur.timers) clearInterval(t);
+    stopTimers();
     $('quiz').hidden = true; $('qBody').innerHTML = '';
     const c = cur; cur = null;
     if (done) c.hooks.onFinish && c.hooks.onFinish({ secs: (performance.now() - c.t0) / 1000 });
@@ -415,16 +321,23 @@
   $('qClose').onclick = () => {
     if (!cur) return;
     if (cur.id === 'intro' && !cur.hooks.review) { if (!window.confirm('약속 카드를 나중에 볼까요? 탐험대장에게 다시 말을 걸면 이어서 할 수 있어요.')) return; }
-    else if (cur.id !== 'intro' && !window.confirm('지도로 돌아갈까요?\n이 미션은 다음에 처음부터 다시 해요.')) return;
+    else if (cur.id !== 'intro' && !window.confirm('지도로 돌아갈까요?\n이 미니게임은 다음에 처음부터 다시 해요.')) return;
     close(false);
   };
   function wrong() { if (cur && cur.hooks.onWrong) cur.hooks.onWrong(); cur.hooks.sfx.no(); }
   function nextStep() {
-    for (const t of cur.timers) clearInterval(t); cur.timers = [];
+    stopTimers();
     cur.i++;
     if (cur.i >= cur.def.steps.length) { close(true); return; }
     renderStep();
   }
+  // 반복 애니메이션 (미니게임이 바뀌면 자동으로 멈춰요)
+  function animate(fn) {
+    const r = { id: 0 }; let last = performance.now();
+    const tick = (now) => { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (fn(dt) === false) return; r.id = requestAnimationFrame(tick); };
+    r.id = requestAnimationFrame(tick); cur.rafs.push(r); return r;
+  }
+  function later(fn, ms) { const t = setTimeout(fn, ms); cur.timers.push(t); return t; }
   function renderSteps() {
     const box = $('qSteps'); box.innerHTML = '';
     const n = cur.def.steps.length; if (n < 2 && !cur.def.lamps) return;
@@ -441,7 +354,7 @@
     renderSteps();
     const body = $('qBody'); body.innerHTML = ''; body.scrollTop = 0;
     const root = document.createElement('div'); root.className = 'step t-' + st.type;
-    if (cur.def.virtual) { const v = document.createElement('div'); v.className = 'vnote'; v.textContent = '📌 게임 속 가상 학습 사례예요. 실제 학교의 일정이 아니에요.'; root.appendChild(v); }
+    if (cur.def.virtual) { const v = document.createElement('div'); v.className = 'vnote'; v.textContent = '📌 게임 속 가상 학교·가상 알림이에요. 실제 학교 일정이나 뉴스가 아니에요.'; root.appendChild(v); }
     if (st.say) root.appendChild(sayBubble(st.sayWho || cur.def.npc, st.say));
     body.appendChild(root);
     TYPES[st.type](root, st);
@@ -455,18 +368,32 @@
   function qText(root, q, hint) {
     const h = document.createElement('h3'); h.className = 'qq'; h.textContent = q; root.appendChild(h);
     if (hint) { const p = document.createElement('p'); p.className = 'qhint'; p.textContent = hint; root.appendChild(p); }
+    return h;
   }
   function sceneEl(name) { return SCENES[name](cur.timers); }
+  const heroUrl = (frame) => (window.AIX && AIX.heroUrl ? AIX.heroUrl(frame) : PX.url('hero', frame, 4));
+  // 반짝이는 코인 (정답 표시용 효과, 실제 코인은 미션을 처음 끝낼 때 받아요)
+  function sparkle(el) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    for (let i = 0; i < 5; i++) {
+      const s = document.createElement('i'); s.className = 'spk'; s.textContent = i % 2 ? '✨' : '🪙';
+      s.style.left = (r.left + r.width * (0.2 + Math.random() * 0.6)) + 'px'; s.style.top = (r.top + r.height * 0.4) + 'px';
+      s.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px'); s.style.animationDelay = (i * 0.05) + 's';
+      document.getElementById('fx').appendChild(s); setTimeout(() => s.remove(), 1200);
+    }
+  }
   // 피드백 상자: ok면 '다음' 버튼
   function feedback(root, ok, text, opts = {}) {
-    let fb = root.querySelector('.fb');
+    let fb = root.querySelector(':scope > .fb');
     if (!fb) { fb = document.createElement('div'); fb.className = 'fb'; root.appendChild(fb); }
     fb.className = 'fb ' + (ok ? 'ok' : 'no');
-    fb.innerHTML = `<img alt="" src="${PX.url('hero', ok ? 'happy' : 'think', 4)}"><div class="fbt"><b>${ok ? (opts.title || '정답이에요!') : '다시 생각해 봐요'}</b><p></p></div>`;
+    fb.innerHTML = `<img alt="" src="${heroUrl(ok ? 'happy' : 'think')}"><div class="fbt"><b>${ok ? (opts.title || '정답이에요!') : (opts.title || '다시 생각해 봐요')}</b><p></p></div>`;
     fb.querySelector('p').textContent = text;
     if (opts.scene) fb.querySelector('.fbt').appendChild(sceneEl(opts.scene));
     if (ok) {
-      cur.hooks.sfx.ok();
+      cur.hooks.sfx.ok(); sparkle(fb);
+      if (opts.noNext) return fb;
       const b = document.createElement('button'); b.className = 'btn primary next';
       b.textContent = opts.nextLabel || (cur.i === cur.def.steps.length - 1 ? '미션 완료! ▶' : '다음 ▶');
       b.onclick = opts.onNext || nextStep;
@@ -478,116 +405,442 @@
     }
     return fb;
   }
-  function optButton(i, text) {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'opt';
-    b.innerHTML = `<span class="on">${NUM[i]}</span><span class="ot"></span><span class="om"></span>`;
+  function clearFb(root) { const f = root.querySelector(':scope > .fb'); if (f) f.remove(); }
+  function bigOpt(ic, text) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'opt bigic';
+    b.innerHTML = `<span class="ic">${ic || ''}</span><span class="ot"></span><span class="om"></span>`;
     b.querySelector('.ot').textContent = text;
     return b;
+  }
+  function optButton(i, text) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'opt';
+    b.innerHTML = `<span class="on">${['①', '②', '③', '④', '⑤', '⑥'][i]}</span><span class="ot"></span><span class="om"></span>`;
+    b.querySelector('.ot').textContent = text;
+    return b;
+  }
+  // 고르기 (한 개 정답): opts [{ic,t,ok,fb}]
+  function choiceRow(root, opts, onRight, cls = '') {
+    const grid = document.createElement('div'); grid.className = 'opts n' + opts.length + ' ' + cls; root.appendChild(grid);
+    let done = false;
+    opts.forEach((o) => {
+      const b = bigOpt(o.ic, o.t); grid.appendChild(b);
+      b.onclick = () => {
+        if (done || b.disabled) return;
+        if (o.ok) { done = true; b.classList.add('right'); b.querySelector('.om').textContent = '✔'; grid.querySelectorAll('.opt').forEach((x) => { if (x !== b) x.disabled = true; }); onRight(b); }
+        else { b.classList.add('wrong'); b.disabled = true; b.querySelector('.om').textContent = '✗'; wrong(); feedback(root, false, o.fb); }
+      };
+    });
+    return grid;
+  }
+
+  // ---- 끌어서 놓기 (터치·마우스 공통). 살짝 누르면 '고르기'로 동작해요 ----
+  function makeDrag(el, opt) {
+    el.addEventListener('pointerdown', (e) => {
+      if (el.disabled || el.classList.contains('locked') || (opt.enabled && !opt.enabled())) return;
+      if (e.button !== undefined && e.button > 0) return;
+      e.preventDefault();
+      const sx = e.clientX, sy = e.clientY, r = el.getBoundingClientRect();
+      let moved = false, ghost = null, over = null;
+      const targetAt = (x, y) => { const hit = document.elementsFromPoint(x, y); return opt.targets().find((t) => hit.some((h) => t === h || t.contains(h))) || null; };
+      const move = (ev) => {
+        if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
+          moved = true; ghost = el.cloneNode(true); ghost.classList.add('dragghost'); ghost.removeAttribute('id');
+          ghost.style.width = r.width + 'px'; ghost.style.height = r.height + 'px'; document.body.appendChild(ghost); el.classList.add('dragging');
+        }
+        if (!moved) return;
+        ghost.style.left = (ev.clientX - (sx - r.left)) + 'px'; ghost.style.top = (ev.clientY - (sy - r.top)) + 'px';
+        const t = targetAt(ev.clientX, ev.clientY);
+        if (t !== over) { if (over) over.classList.remove('over'); over = t; if (over) over.classList.add('over'); }
+      };
+      const up = (ev) => {
+        window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+        if (over) over.classList.remove('over');
+        if (moved) { ghost.remove(); el.classList.remove('dragging'); const t = ev.type === 'pointercancel' ? null : targetAt(ev.clientX, ev.clientY); if (t) opt.onDrop(t); }
+        else if (opt.onTap) opt.onTap();
+      };
+      window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    });
+  }
+  // 그림 위에 겹치는 층 (그림 좌표 W×H 기준 %로 배치)
+  function overlayScene(name, W, H) {
+    const sc = sceneEl(name);
+    const img = document.createElement('div'); img.className = 'hsimg';
+    sc.insertBefore(img, sc.firstChild); img.appendChild(sc.querySelector('canvas'));
+    const layer = document.createElement('div'); layer.className = 'hslayer'; img.appendChild(layer);
+    const place = (el, x, y, w, h) => Object.assign(el.style, { left: (x / W * 100) + '%', top: (y / H * 100) + '%', width: (w / W * 100) + '%', height: (h / H * 100) + '%' });
+    return { sc, img, layer, place };
   }
 
   const TYPES = {};
 
-  // ---- 1) 상황 보고 알맞은 행동 고르기 ----
-  TYPES.choice = (root, st) => {
-    if (st.scene) root.appendChild(sceneEl(st.scene));
-    qText(root, st.q, st.hint);
-    const grid = document.createElement('div'); grid.className = 'opts n' + st.opts.length; root.appendChild(grid);
-    let done = false;
-    st.opts.forEach((o, i) => {
-      const b = optButton(i, o.t); grid.appendChild(b);
-      b.onclick = () => {
-        if (done || b.disabled) return;
-        if (o.ok) {
-          done = true; b.classList.add('right'); b.querySelector('.om').textContent = '✔';
-          grid.querySelectorAll('.opt').forEach((x) => { if (x !== b) x.disabled = true; });
-          feedback(root, true, st.explain, { scene: st.afterScene });
+  // ================= ① 수상한 영상 탐정: 돋보기로 단서 찾기 =================
+  TYPES.clues = (root, st) => {
+    const W = 220, H = 128;
+    const tools = document.createElement('div'); tools.className = 'tools'; root.appendChild(tools);
+    const box = document.createElement('div'); box.className = 'hsbox'; root.appendChild(box);
+    const { sc, layer, place } = overlayScene('tv_dog', W, H); box.appendChild(sc);
+    sc.classList.add('wide');
+    const notes = document.createElement('div'); notes.className = 'notes'; root.appendChild(notes);
+    const found = new Set(), spotEl = {}, noteEl = {}, toolEl = {};
+    for (const c of st.clues) {
+      const s = document.createElement('div'); s.className = 'clue'; place(s, c.x, c.y, c.w, c.h); layer.appendChild(s); spotEl[c.id] = s;
+      const t = document.createElement('button'); t.type = 'button'; t.className = 'tool'; t.textContent = c.tool; tools.appendChild(t); toolEl[c.id] = t;
+      t.onclick = () => { cur.hooks.sfx.pick(); s.classList.remove('hint'); void s.offsetWidth; s.classList.add('hint'); };
+      const n = document.createElement('div'); n.className = 'note';
+      n.innerHTML = `<b></b><p>돋보기로 찾아요 🔍</p><span class="dojang">탐정<br>도장</span>`; n.querySelector('b').textContent = c.tool; notes.appendChild(n); noteEl[c.id] = n;
+    }
+    const lens = document.createElement('div'); lens.className = 'lens'; lens.innerHTML = '<i></i>'; layer.appendChild(lens);
+    let lx = 0.5, ly = 0.55, drag = false;
+    const setLens = () => { lens.style.left = (lx * 100) + '%'; lens.style.top = (ly * 100) + '%'; check(); };
+    function check() {
+      const px = lx * W, py = ly * H;
+      for (const c of st.clues) {
+        if (found.has(c.id)) continue;
+        if (px > c.x - 6 && px < c.x + c.w + 6 && py > c.y - 6 && py < c.y + c.h + 6) reveal(c);
+      }
+    }
+    function reveal(c) {
+      found.add(c.id); cur.hooks.sfx.ok();
+      spotEl[c.id].classList.add('found'); toolEl[c.id].classList.add('done'); toolEl[c.id].textContent = '✔ ' + c.tool;
+      const n = noteEl[c.id]; n.classList.add('open'); n.querySelector('p').textContent = c.card; sparkle(n);
+      if (found.size === st.clues.length) later(conclude, 500);
+    }
+    const toLens = (e) => { const r = layer.getBoundingClientRect(); lx = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); ly = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)); setLens(); };
+    layer.addEventListener('pointerdown', (e) => { e.preventDefault(); drag = true; try { layer.setPointerCapture(e.pointerId); } catch (er) { } toLens(e); });
+    layer.addEventListener('pointermove', (e) => { if (drag) toLens(e); });
+    layer.addEventListener('pointerup', () => { drag = false; });
+    layer.addEventListener('pointercancel', () => { drag = false; });
+    setLens();
+    // 오래 못 찾으면 살짝 반짝이는 힌트
+    later(() => { for (const c of st.clues) if (!found.has(c.id)) spotEl[c.id].classList.add('hint'); }, 9000);
+    let concluded = false;
+    function conclude() {
+      if (concluded) return; concluded = true;
+      const h = qText(root, st.q); h.classList.add('pop');
+      choiceRow(root, st.opts, () => feedback(root, true, st.explain, { title: '탐정 도장 쾅! 🔍' }), 'n3big');
+      setTimeout(() => h.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+    }
+  };
+
+  // ================= ① 탐정 도장: ⭕/❌ 도장 끌어다 찍기 =================
+  TYPES.stamp = (root, st) => {
+    let k = 0;
+    const area = document.createElement('div'); area.className = 'stamparea'; root.appendChild(area);
+    const show = () => {
+      clearFb(root);
+      const it = st.items[k];
+      area.innerHTML = `<div class="oxn">${k + 1} / ${st.items.length}</div><div class="stcard" tabindex="-1"><p></p><span class="mark"></span></div>
+        <div class="stamps2"><button type="button" class="stampbtn yes" data-v="1"><span>⭕</span>맞아요</button><button type="button" class="stampbtn no" data-v="0"><span>❌</span>아니에요</button></div>`;
+      const card = area.querySelector('.stcard'); card.querySelector('p').textContent = it.t;
+      let done = false;
+      const apply = (v) => {
+        if (done) return;
+        const mark = card.querySelector('.mark'); mark.textContent = v ? '⭕' : '❌'; mark.className = 'mark on';
+        cur.hooks.sfx.pick();
+        if (v === it.ans) {
+          done = true; card.classList.add('good');
+          area.querySelectorAll('.stampbtn').forEach((b) => { b.disabled = true; });
+          const last = k === st.items.length - 1;
+          feedback(root, true, it.explain, { title: it.ans ? '맞아요! ⭕' : '맞아요! ❌가 정답', nextLabel: last ? '미션 완료! ▶' : '다음 카드 ▶', onNext: last ? nextStep : () => { k++; show(); } });
         } else {
-          b.classList.add('wrong'); b.disabled = true; b.querySelector('.om').textContent = '✗';
-          wrong(); feedback(root, false, o.fb + ' 다른 답을 골라 볼까요?');
+          wrong(); card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+          later(() => { mark.className = 'mark'; }, 700);
+          feedback(root, false, '다시 읽고 생각해 봐요. 💡 ' + it.explain.replace(/^맞아요!\s*/, ''));
         }
       };
-    });
-  };
-
-  // ---- 1-2) 알맞은 것 모두 고르기 ----
-  TYPES.multi = (root, st) => {
-    if (st.scene) root.appendChild(sceneEl(st.scene));
-    qText(root, st.q, st.hint);
-    const grid = document.createElement('div'); grid.className = 'opts multi n' + st.opts.length; root.appendChild(grid);
-    const sel = new Set(); let done = false;
-    const btns = st.opts.map((o, i) => {
-      const b = optButton(i, o.t); b.setAttribute('aria-pressed', 'false'); b.querySelector('.on').textContent = '☐'; grid.appendChild(b);
-      b.onclick = () => {
-        if (done) return;
-        cur.hooks.sfx.pick();
-        if (sel.has(i)) sel.delete(i); else sel.add(i);
-        b.classList.toggle('sel', sel.has(i)); b.setAttribute('aria-pressed', sel.has(i) ? 'true' : 'false');
-        b.querySelector('.on').textContent = sel.has(i) ? '☑' : '☐';
-        b.classList.remove('wrong'); b.querySelector('.om').textContent = '';
-      };
-      return b;
-    });
-    const need = st.opts.filter((o) => o.ok).length;
-    const check = document.createElement('button'); check.className = 'btn primary check'; check.textContent = '다 골랐어요 ✔';
-    root.appendChild(check);
-    check.onclick = () => {
-      if (done) return;
-      if (!sel.size) { feedback(root, false, '먼저 알맞은 행동을 골라 주세요.'); return; }
-      const bad = [...sel].filter((i) => !st.opts[i].ok);
-      if (bad.length) {
-        bad.forEach((i) => { btns[i].classList.add('wrong'); btns[i].querySelector('.om').textContent = '✗'; });
-        wrong(); feedback(root, false, st.opts[bad[0]].fb + ' ✗ 표시한 것을 빼고 다시 골라 봐요.');
-        return;
-      }
-      if (sel.size < need) { wrong(); feedback(root, false, `좋은 행동을 골랐어요! 그런데 알맞은 행동이 ${need - sel.size}개 더 있어요. 더 찾아볼까요?`); return; }
-      done = true; check.disabled = true;
-      btns.forEach((b, i) => { if (st.opts[i].ok) { b.classList.add('right'); b.querySelector('.om').textContent = '✔'; } else b.disabled = true; });
-      feedback(root, true, st.explain);
-    };
-  };
-
-  // ---- 1-3) 네 / 아니요 ----
-  TYPES.yesno = (root, st) => {
-    qText(root, st.q);
-    const grid = document.createElement('div'); grid.className = 'opts yn'; root.appendChild(grid);
-    let done = false;
-    [[true, '⭕', st.yes], [false, '❌', st.no]].forEach(([v, ic, t]) => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt big';
-      b.innerHTML = `<span class="ic">${ic}</span><span class="ot"></span><span class="om"></span>`; b.querySelector('.ot').textContent = t;
-      grid.appendChild(b);
-      b.onclick = () => {
-        if (done || b.disabled) return;
-        if (v === st.ans) { done = true; b.classList.add('right'); b.querySelector('.om').textContent = '✔'; grid.querySelectorAll('.opt').forEach((x) => { if (x !== b) x.disabled = true; }); feedback(root, true, st.explain); }
-        else { b.classList.add('wrong'); b.disabled = true; b.querySelector('.om').textContent = '✗'; wrong(); feedback(root, false, st.fb); }
-      };
-    });
-  };
-
-  // ---- O·X 연속 퀴즈 ----
-  TYPES.ox = (root, st) => {
-    let k = 0;
-    const box = document.createElement('div'); box.className = 'oxbox'; root.appendChild(box);
-    const show = () => {
-      const it = st.items[k];
-      box.innerHTML = `<div class="oxn">${k + 1} / ${st.items.length}</div><div class="oxcard"></div><div class="opts yn"></div>`;
-      box.querySelector('.oxcard').textContent = it.t;
-      const grid = box.querySelector('.opts'); let done = false;
-      const fbOld = root.querySelector('.fb'); if (fbOld) fbOld.remove();
-      [[true, '⭕', '맞아요'], [false, '❌', '아니에요']].forEach(([v, ic, t]) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'opt big';
-        b.innerHTML = `<span class="ic">${ic}</span><span class="ot">${t}</span><span class="om"></span>`; grid.appendChild(b);
-        b.onclick = () => {
-          if (done || b.disabled) return;
-          if (v === it.ans) {
-            done = true; b.classList.add('right'); b.querySelector('.om').textContent = '✔';
-            grid.querySelectorAll('.opt').forEach((x) => { if (x !== b) x.disabled = true; });
-            const last = k === st.items.length - 1;
-            feedback(root, true, it.explain, { title: it.ans ? '맞아요! ⭕' : '맞아요! ❌가 정답', nextLabel: last ? '미션 완료! ▶' : '다음 문장 ▶', onNext: last ? nextStep : () => { k++; show(); } });
-          } else { b.classList.add('wrong'); b.disabled = true; b.querySelector('.om').textContent = '✗'; wrong(); feedback(root, false, it.fb); }
-        };
-      });
+      area.querySelectorAll('.stampbtn').forEach((b) => makeDrag(b, { targets: () => [card], onDrop: () => apply(b.dataset.v === '1'), onTap: () => apply(b.dataset.v === '1') }));
     };
     show();
+  };
+
+  // ================= ② 소문을 멈춰라!: 떠다니는 소문 물방울 =================
+  TYPES.bubbles = (root, st) => {
+    const sea = document.createElement('div'); sea.className = 'sea'; root.appendChild(sea);
+    sea.innerHTML = `<div class="seasrc"><img alt="" src="${PX.url('jelly', 'idle', 4)}"><span>인터넷 소문</span></div>
+      <div class="friends"><img alt="" src="${PX.url('fish', 'idle', 3)}"><img alt="" src="${PX.url('fish', 'blink', 3)}"><img alt="" src="${PX.url('fish', 'idle', 3)}"><span>친구들</span><i class="shieldfx"></i></div>
+      <div class="seanote" aria-live="polite"></div>`;
+    for (let i = 0; i < 14; i++) { const d = document.createElement('i'); d.className = 'dot'; d.style.left = (Math.random() * 100) + '%'; d.style.animationDelay = (Math.random() * 6) + 's'; sea.appendChild(d); }
+    const bar = document.createElement('div'); bar.className = 'seabar'; root.appendChild(bar);
+    bar.innerHTML = `<button type="button" class="btn stopbtn">✋ 멈춰요!</button><span class="cnt">멈추고 확인한 소문 <b>0</b> / ${st.rumors.length}</span>`;
+    const panel = document.createElement('div'); panel.className = 'bq'; panel.hidden = true; root.appendChild(panel);
+    const B = st.rumors.map((r, i) => {
+      const el = document.createElement('button'); el.type = 'button'; el.className = 'rb';
+      el.innerHTML = `<span class="ri">${r.ic}</span><span class="rt"></span>`; el.querySelector('.rt').textContent = r.t;
+      sea.appendChild(el);
+      return { r, i, el, x: 0.1, base: 0.2 + i * 0.29, ph: Math.random() * 6, state: 'wait', t: -1.4 - i * 2.6 };
+    });
+    let paused = false, handled = 0;
+    const note = sea.querySelector('.seanote');
+    const say = (m) => { note.textContent = m; note.classList.remove('show'); void note.offsetWidth; note.classList.add('show'); };
+    const pos = (b) => { b.el.style.left = (b.x * 100) + '%'; b.el.style.top = ((b.base + Math.sin(b.ph) * 0.05) * 100) + '%'; };
+    B.forEach(pos);
+    animate((dt) => {
+      if (paused) return;
+      for (const b of B) {
+        if (b.state === 'wait') { b.t += dt; if (b.t >= 0) { b.state = 'float'; b.el.classList.add('show'); } continue; }
+        if (b.state !== 'float') continue;
+        b.x += dt * 0.055; b.ph += dt * 1.6;
+        if (b.x > 0.74) { b.x = 0.1; say('휴! 친구들에게 닿기 전에 소문이 다시 돌아왔어요. 천천히 멈춰 봐요.'); }
+        pos(b);
+      }
+    });
+    const stop = (b) => {
+      if (paused || !b || b.state !== 'float') return;
+      paused = true; b.state = 'stopped'; b.el.classList.add('stopped'); cur.hooks.sfx.pick();
+      panel.hidden = false; panel.innerHTML = '';
+      const h = document.createElement('h3'); h.className = 'qq'; h.textContent = `✋ 멈췄어요! "${b.r.t}" — 어떻게 확인할까요?`; panel.appendChild(h);
+      const grid = document.createElement('div'); grid.className = 'opts n3'; panel.appendChild(grid);
+      let ok = false;
+      b.r.opts.forEach((o, i) => {
+        const btn = optButton(i, o.t); grid.appendChild(btn);
+        btn.onclick = () => {
+          if (ok || btn.disabled) return;
+          if (o.ok) {
+            ok = true; btn.classList.add('right'); btn.querySelector('.om').textContent = '✔'; grid.querySelectorAll('.opt').forEach((x) => { x.disabled = true; });
+            b.state = 'done'; b.el.classList.remove('stopped'); b.el.classList.add('done'); b.el.querySelector('.ri').textContent = '🔍';
+            handled++; bar.querySelector('b').textContent = handled; sparkle(b.el);
+            const last = handled === B.length;
+            if (last) sea.classList.add('shielded');
+            const fb = feedback(panel, true, b.r.why + (last ? ' ' + st.explain : ''), { title: last ? '친구들에게 안전 보호막! 🛡️' : '확인 완료!', nextLabel: last ? '미션 완료! ▶' : '다음 소문 멈추기 ▶', onNext: last ? nextStep : () => { panel.hidden = true; paused = false; } });
+            void fb;
+          } else { btn.classList.add('wrong'); btn.disabled = true; btn.querySelector('.om').textContent = '✗'; wrong(); feedback(panel, false, o.fb + ' 다른 방법을 골라 봐요.'); }
+        };
+      });
+      setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+    };
+    B.forEach((b) => { b.el.addEventListener('pointerdown', (e) => { e.preventDefault(); stop(b); }); });
+    bar.querySelector('.stopbtn').onclick = () => {
+      const fl = B.filter((b) => b.state === 'float').sort((a, b) => b.x - a.x)[0];
+      if (fl) stop(fl); else if (!paused) say('잠깐 기다려요. 소문 물방울이 곧 나타나요!');
+    };
+  };
+
+  // ================= ③ 누구에게 물어볼까?: 상황 카드 배달 =================
+  TYPES.deliver = (root, st) => {
+    const deck = document.createElement('div'); deck.className = 'deck'; root.appendChild(deck);
+    const row = document.createElement('div'); row.className = 'helpers'; root.appendChild(row);
+    const H = {};
+    for (const h of st.helpers) {
+      const el = document.createElement('button'); el.type = 'button'; el.className = 'helper h-' + h.id;
+      el.innerHTML = `<img alt="" src="${PX.url(h.spr, 'idle', 4)}"><b></b><span class="hgot"></span><span class="hbub" hidden></span>`;
+      el.querySelector('b').textContent = h.name; row.appendChild(el); H[h.id] = el;
+      el.onclick = () => { if (sel) give(h.id); };
+    }
+    let k = 0, sel = false, busy = false;
+    const names = Object.fromEntries(st.helpers.map((h) => [h.id, h.name]));
+    function show() {
+      clearFb(root); sel = false; busy = false;
+      const c = st.cards[k];
+      deck.innerHTML = `<div class="dcount">카드 ${k + 1} / ${st.cards.length}</div><div class="scard" role="button" tabindex="0"><span class="si">${c.ic}</span><span class="stx"></span><em>끌어서 배달해요 ✉️</em></div>`;
+      const card = deck.querySelector('.scard'); card.querySelector('.stx').textContent = c.t;
+      makeDrag(card, { targets: () => Object.values(H), onDrop: (t) => give(Object.keys(H).find((id) => H[id] === t)), onTap: () => { sel = !sel; card.classList.toggle('picked', sel); if (sel) cur.hooks.sfx.pick(); } });
+    }
+    function bubble(id, text, good) { Object.values(H).forEach((h) => { h.querySelector('.hbub').hidden = true; }); const b = H[id].querySelector('.hbub'); b.textContent = text; b.hidden = false; b.className = 'hbub ' + (good ? 'g' : 'n'); later(() => { b.hidden = true; }, 3800); }
+    function give(id) {
+      if (busy || !id) return;
+      const c = st.cards[k], card = deck.querySelector('.scard');
+      const okay = (c.good || []).includes(id) || (c.okay || []).includes(id);
+      if (okay) {
+        busy = true; card.classList.add('sent'); bubble(id, c.thanks[id], true);
+        H[id].querySelector('.hgot').textContent += c.ic;
+        const others = c.good.filter((x) => x !== id).map((x) => names[x]);
+        const last = k === st.cards.length - 1;
+        const msg = (others.length ? `${others.join('·')}에게 물어봐도 좋아요. ` : '') + (last ? st.explain : '');
+        feedback(root, true, msg || '잘 배달했어요!', { title: `${names[id]}에게 잘 물어봤어요!`, nextLabel: last ? '미션 완료! ▶' : '다음 카드 ▶', onNext: last ? nextStep : () => { k++; show(); } });
+      } else {
+        wrong(); bubble(id, st.wrong[id] || '음, 여기는 아닌 것 같아요.', false);
+        card.classList.remove('shake', 'picked'); void card.offsetWidth; card.classList.add('shake'); sel = false;
+        feedback(root, false, (st.wrong[id] || '다른 사람에게 물어봐요.') + ' 카드가 돌아왔어요. 다시 배달해 봐요.');
+      }
+    }
+    show();
+  };
+
+  // ================= ④ 사실 확인 연구소: 카드 뒤집기 → 출처 분류 → 날짜 확인 =================
+  const LAB = [
+    { id: 'A', cls: 'a', top: '🌐 익명 게시판', meta: '글쓴이: ??? · 날짜: 없음', text: '"내일 학교 쉰대!!!"', stamp: '출처 모름', tray: 'check' },
+    { id: 'B', cls: 'b', top: '📢 바다초등학교 알림 (가상)', meta: '보낸 곳: 바다초 · 3월 14일(목) · 대상: 전교생', text: '"내일 3월 15일(금)은 정상 수업입니다."', stamp: '공식 안내', tray: 'clear' },
+    { id: 'C', cls: 'c', top: '💬 친구 방울이', meta: '보낸 사람: 친구 (들은 이야기)', text: '"나도 쉬는 날이라고 들었어!"', stamp: '들은 이야기', tray: 'check' },
+  ];
+  const LAB_D = { id: 'D', cls: 'd', top: '📢 바다초등학교 알림 (가상)', meta: '보낸 곳: 바다초 · 작년 3월 14일 · 대상: 전교생', text: '"내일 3월 15일은 개교기념일 휴업입니다."', stamp: '공식 안내 · 작년 날짜' };
+  function labCard(c) {
+    const el = document.createElement('div'); el.className = 'lcard ' + c.cls; el.dataset.id = c.id;
+    el.innerHTML = `<div class="lback"><b>정보 카드 ${c.id}</b><span>눌러서 뒤집기</span></div>
+      <div class="lfront"><div class="ltop"></div><div class="lmeta"></div><p class="ltext"></p><span class="lstamp"></span></div>`;
+    el.querySelector('.ltop').textContent = c.top; el.querySelector('.lmeta').textContent = c.meta; el.querySelector('.ltext').textContent = c.text; el.querySelector('.lstamp').textContent = c.stamp;
+    return el;
+  }
+  TYPES.lab = (root) => {
+    const h = qText(root, '① 카드를 눌러 뒤집고, 출처 도장을 확인해요.');
+    const grid = document.createElement('div'); grid.className = 'lgrid'; root.appendChild(grid);
+    const els = {};
+    const flipped = new Set();
+    for (const c of LAB) {
+      const el = labCard(c); grid.appendChild(el); els[c.id] = el;
+      el.addEventListener('click', () => {
+        if (flipped.has(c.id)) return;
+        flipped.add(c.id); el.classList.add('flip'); cur.hooks.sfx.pick();
+        later(() => { el.classList.add('stamped'); cur.hooks.sfx.pick(); }, 450);
+        if (flipped.size === LAB.length) later(sortPhase, 1100);
+      });
+    }
+    function sortPhase() {
+      h.textContent = '② 카드를 끌어서 알맞은 상자에 넣어요.'; h.classList.add('pop');
+      const trays = document.createElement('div'); trays.className = 'trays'; root.appendChild(trays);
+      trays.innerHTML = `<div class="tray" data-t="clear"><b>✅ 출처가 분명한 자료</b><div class="tin"></div></div><div class="tray" data-t="check"><b>❓ 추가 확인이 필요한 자료</b><div class="tin"></div></div>`;
+      const T = [...trays.querySelectorAll('.tray')];
+      let picked = null, placed = 0;
+      const put = (c, tray) => {
+        if (!tray) return;
+        const el = els[c.id];
+        if (tray.dataset.t === c.tray) {
+          tray.querySelector('.tin').appendChild(el); el.classList.add('placed', 'locked'); el.classList.remove('picked'); picked = null; placed++;
+          cur.hooks.sfx.pick(); sparkle(el); clearFb(root);
+          if (placed === LAB.length) later(datePhase, 500);
+        } else {
+          wrong(); el.classList.remove('shake', 'picked'); void el.offsetWidth; el.classList.add('shake'); picked = null;
+          feedback(root, false, c.tray === 'clear' ? '이 카드는 학교가 직접 보낸 공식 안내예요. 도장을 다시 보세요!' : `"${c.stamp}" 도장이에요. 누가 처음 말했는지 알 수 없으니 추가 확인이 필요해요.`);
+        }
+      };
+      for (const c of LAB) {
+        const el = els[c.id];
+        makeDrag(el, { targets: () => T, onDrop: (t) => put(c, t), onTap: () => { picked = picked === c ? null : c; LAB.forEach((x) => els[x.id].classList.toggle('picked', picked === x)); } });
+      }
+      T.forEach((t) => t.addEventListener('click', () => { if (picked) put(picked, t); }));
+      setTimeout(() => trays.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+    }
+    function datePhase() {
+      clearFb(root);
+      root.appendChild(sayBubble('penguin', '앗! 학교 알림이 하나 더 나왔어요. 두 알림의 날짜를 잘 보세요.'));
+      const q = qText(root, '③ 내일 일정은 어떤 알림으로 확인할까요?'); q.classList.add('pop');
+      const pair = document.createElement('div'); pair.className = 'lpair'; root.appendChild(pair);
+      const bEl = labCard(LAB[1]), dEl = labCard(LAB_D);
+      for (const [el, ok] of [[bEl, true], [dEl, false]]) {
+        el.classList.add('flip', 'stamped', 'pickable'); pair.appendChild(el);
+        el.addEventListener('click', () => {
+          if (root.dataset.done) return;
+          if (ok) { root.dataset.done = '1'; el.classList.add('right'); feedback(root, true, '정답! B는 학교가 보낸 공식 알림이고, 날짜(3월 14일에 보낸 "내일 3월 15일")도 맞아요. 공식 안내도 날짜와 대상을 함께 확인해요.', { title: '출처 + 날짜 확인 완료!' }); }
+          else { el.classList.add('wrong'); wrong(); feedback(root, false, 'D도 학교 알림이지만 작년 날짜예요! 공식 안내도 날짜가 맞는지 꼭 확인해요.'); }
+        });
+      }
+      setTimeout(() => q.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    }
+  };
+
+  // ================= ④ 저울: 사람 수 vs 출처 =================
+  TYPES.scale = (root, st) => {
+    const sc = document.createElement('div'); sc.className = 'scale tilt-l'; root.appendChild(sc);
+    sc.innerHTML = `<div class="beam"><div class="pan l"><span>🌐 쉰대!</span><span>💬 쉰대!</span><em>익명 글 + 친구 이야기</em></div><div class="pan r"><span>📢 정상 수업</span><em>학교 공식 알림</em></div></div><div class="pole"></div><div class="slabel">사람 수로만 재면… 👥 2 : 1</div>`;
+    qText(root, st.q);
+    choiceRow(root, st.opts, () => { sc.className = 'scale tilt-r'; sc.querySelector('.slabel').textContent = '출처로 재면! 🏷️ 공식 알림이 더 믿을 만해요'; feedback(root, true, st.explain); });
+  };
+
+  // ================= ⑤ 사진 속 비밀: 찾기 → 스티커로 가리기 → 전후 비교 → 체크리스트 =================
+  const PHOTO_SPOTS = [
+    { id: 'face', need: true, x: 150, y: 34, w: 52, h: 52, label: '친구 얼굴', fb: '찾았어요! 친구 얼굴은 허락 없이 공개하면 안 돼요.' },
+    { id: 'tag', need: true, x: 96, y: 86, w: 60, h: 32, label: '이름표', fb: '찾았어요! 이름이 보이면 누구인지 알 수 있어요. 이름은 개인정보예요.' },
+    { id: 'poster', x: 52, y: 8, w: 82, h: 66, fb: '포스터는 내 활동이에요. 잘 보이면 좋아요! 👍' },
+    { id: 'plant', x: 4, y: 56, w: 32, h: 44, fb: '화분은 개인정보가 아니에요. 괜찮아요.' },
+    { id: 'clock', x: 158, y: 0, w: 28, h: 26, fb: '시계는 괜찮아요.' },
+    { id: 'window', x: 6, y: 6, w: 44, h: 34, fb: '창문은 괜찮아요.' },
+  ];
+  TYPES.photo = (root) => {
+    const W = 204, H = 124;
+    const h = qText(root, '① 올리기 전에 확인해야 할 곳 2군데를 눌러 찾아요.');
+    const cnt = document.createElement('div'); cnt.className = 'hscount'; root.appendChild(cnt);
+    const box = document.createElement('div'); box.className = 'hsbox'; root.appendChild(box);
+    const { sc, layer, place } = overlayScene('share_raw', W, H); box.appendChild(sc);
+    const need = PHOTO_SPOTS.filter((s) => s.need), found = new Set(), spotEl = {};
+    const upd = () => { cnt.innerHTML = `찾은 곳 <b>${found.size}</b> / ${need.length}`; };
+    upd();
+    let phase = 1;
+    for (const s of PHOTO_SPOTS) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'spot' + (s.need ? ' need' : ''); b.setAttribute('aria-label', s.label || '사진 속 물건');
+      place(b, s.x, s.y, s.w, s.h); layer.appendChild(b); spotEl[s.id] = b;
+      b.onclick = () => {
+        if (phase === 2 && s.need) { if (pickedSticker) cover(s.id, pickedSticker); return; }
+        if (phase !== 1) return;
+        if (s.need) {
+          if (found.has(s.id)) return;
+          found.add(s.id); b.classList.add('found'); b.innerHTML = `<span>${s.label}</span>`; cur.hooks.sfx.pick(); upd();
+          feedback(root, true, s.fb, { title: '찾았어요! 🔍', noNext: true });
+          if (found.size === need.length) later(coverPhase, 900);
+        } else { b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope'); feedback(root, false, s.fb + ' 다른 곳을 찾아봐요.', { title: '음…' }); }
+      };
+    }
+    // ② 스티커로 가리기
+    let pickedSticker = null; const covered = {};
+    function coverPhase() {
+      phase = 2; clearFb(root); cnt.innerHTML = '가린 곳 <b>0</b> / 2';
+      h.textContent = '② 스티커를 끌어서 친구 얼굴과 이름표를 가려요.'; h.classList.add('pop');
+      const tray = document.createElement('div'); tray.className = 'stickers'; box.after(tray);
+      for (const em of ['⭐', '🐚', '🌸']) {
+        const s = document.createElement('button'); s.type = 'button'; s.className = 'sticker'; s.textContent = em; tray.appendChild(s);
+        makeDrag(s, { targets: () => need.map((n) => spotEl[n.id]), onDrop: (t) => cover(Object.keys(spotEl).find((id) => spotEl[id] === t), em), onTap: () => { pickedSticker = em; tray.querySelectorAll('.sticker').forEach((x) => x.classList.toggle('picked', x === s)); } });
+      }
+      setTimeout(() => tray.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+    }
+    function cover(id, em) {
+      if (!id || covered[id]) return;
+      covered[id] = em; const el = spotEl[id];
+      el.classList.add('covered'); el.innerHTML = `<i class="stk">${em}</i>`; cur.hooks.sfx.pick(); sparkle(el);
+      const n = Object.keys(covered).length; cnt.innerHTML = `가린 곳 <b>${n}</b> / 2`;
+      if (n === 2) later(comparePhase, 700);
+    }
+    // ③ 전후 비교
+    function comparePhase() {
+      phase = 3;
+      const raw = sc.querySelector('canvas');
+      const after = document.createElement('canvas'); after.width = raw.width; after.height = raw.height;
+      const g = after.getContext('2d'); g.drawImage(raw, 0, 0);
+      const k = raw.width / W;
+      for (const s of need) {
+        const cx = (s.x + s.w / 2) * k, cy = (s.y + s.h / 2) * k;
+        g.fillStyle = 'rgba(255,255,255,0.85)'; g.beginPath(); g.ellipse(cx, cy, s.w * 0.55 * k, s.h * 0.55 * k, 0, 0, Math.PI * 2); g.fill();
+        g.font = `${Math.min(s.w, s.h) * 0.95 * k}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(covered[s.id], cx, cy + 2 * k);
+      }
+      h.textContent = '③ 막대를 움직여 고치기 전과 후를 비교해요.';
+      const cmp = document.createElement('div'); cmp.className = 'compare';
+      cmp.innerHTML = '<div class="cwrap"><img class="ca" alt="고친 후"><div class="cb"><img alt="고치기 전"></div><div class="handle"></div><span class="lb l">고치기 전</span><span class="lb r">고친 후 ✨</span></div><input type="range" min="0" max="100" value="50" aria-label="전후 비교 막대">';
+      cmp.querySelector('.ca').src = after.toDataURL(); cmp.querySelector('.cb img').src = raw.toDataURL();
+      box.replaceWith(cmp); root.querySelector('.stickers').remove(); cnt.remove();
+      const rng = cmp.querySelector('input'), cb = cmp.querySelector('.cb'), hd = cmp.querySelector('.handle');
+      const setV = (v) => { cb.style.width = v + '%'; hd.style.left = v + '%'; };
+      let moved = 0;
+      rng.addEventListener('input', () => { setV(rng.value); if (++moved === 3) checklistPhase(); });
+      const wrapEl = cmp.querySelector('.cwrap');
+      let dragging = false;
+      const toV = (e) => { const r = wrapEl.getBoundingClientRect(); const v = Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)); rng.value = v; setV(v); if (++moved === 3) checklistPhase(); };
+      wrapEl.addEventListener('pointerdown', (e) => { e.preventDefault(); dragging = true; try { wrapEl.setPointerCapture(e.pointerId); } catch (er) { } toV(e); });
+      wrapEl.addEventListener('pointermove', (e) => { if (dragging) toV(e); });
+      wrapEl.addEventListener('pointerup', () => { dragging = false; });
+      setV(50);
+      h.after(cmp);
+      const skip = document.createElement('button'); skip.className = 'btn small'; skip.textContent = '비교했어요 ▶'; skip.onclick = () => checklistPhase(); cmp.appendChild(skip);
+    }
+    // ④ 공유 전 체크리스트 + 올릴 곳
+    let listed = false;
+    function checklistPhase() {
+      if (listed) return; listed = true;
+      const sk = root.querySelector('.compare .btn'); if (sk) sk.remove();
+      const q = qText(root, '④ 올리기 전 체크리스트! 하나씩 눌러 확인해요.'); q.classList.add('pop');
+      const items = ['내 활동(포스터)이 잘 보이나요?', '친구 얼굴이 나오지 않나요?', '이름 등 개인정보가 보이지 않나요?', '올리기 전에 한 번 더 확인했나요?'];
+      const ol = document.createElement('ol'); ol.className = 'cboard'; root.appendChild(ol);
+      let n = 0;
+      items.forEach((t) => {
+        const li = document.createElement('li'); li.className = 'filled tap'; li.innerHTML = '<span class="cb">☐</span><span class="ct"></span><span class="cy"></span>'; li.querySelector('.ct').textContent = t; ol.appendChild(li);
+        li.onclick = () => { if (li.classList.contains('yes')) return; li.classList.add('yes'); li.querySelector('.cb').textContent = '☑'; li.querySelector('.cy').textContent = '네!'; cur.hooks.sfx.pick(); if (++n === items.length) later(wherePhase, 300); };
+      });
+      setTimeout(() => q.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    }
+    function wherePhase() {
+      const q = qText(root, '⑤ 어디에 올릴까요?');
+      choiceRow(root, [
+        { ic: '🌐', t: '누구나 볼 수 있는 인터넷 게시판', fb: '모르는 사람도 볼 수 있어요. 선생님이 안내한 안전한 곳에만 올려요.' },
+        { ic: '🏫', t: '선생님이 안내한 학급 게시판', ok: true },
+      ], () => feedback(root, true, '📤 안전하게 올렸어요! 내 활동은 잘 보이게, 친구 얼굴과 이름은 보이지 않게, 올리기 전에 한 번 더 확인했어요.', { title: '안전한 공유 완료!' }));
+      setTimeout(() => q.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    }
   };
 
   // ---- 3) 상황과 도움 요청 대상 / 낱말과 뜻 연결하기 ----
@@ -665,109 +918,6 @@
     refresh();
   };
 
-  // ---- 4·6) 자료 비교 + 출처가 분명한 자료 찾기 ----
-  TYPES.sources = (root, st) => {
-    const qh = document.createElement('h3'); qh.className = 'qq'; qh.textContent = st.q; root.appendChild(qh);
-    const grid = document.createElement('div'); grid.className = 'srcs'; root.appendChild(grid);
-    const CARDS = [
-      { id: 'A', cls: 'a', top: '🌐 인터넷 게시판', meta: '글쓴이: ??? (익명) · 날짜: 없음', text: '"내일 학교 쉬는 날이래!!! 진짜임"', tag: '출처 모름', why: '누가 썼는지 알 수 없어요. 날짜도 없어요.' },
-      { id: 'B', cls: 'b', top: '📢 바다초등학교 알림 (가상)', meta: '보낸 곳: 바다초등학교 · 3월 14일(목)', text: '"내일 3월 15일(금)은 정상 수업입니다."', tag: '공식 안내', why: '학교가 직접 보낸 안내예요. 날짜도 적혀 있어요.' },
-      { id: 'C', cls: 'c', top: '💬 친구 방울이의 메시지', meta: '보낸 사람: 친구 방울이', text: '"나도 쉬는 날이라고 들었어!"', tag: '들은 이야기', why: '친구도 누군가에게 들은 이야기예요.' },
-    ];
-    const seen = new Set(); let phase = 1, done = false;
-    const els = {};
-    for (const c of CARDS) {
-      const a = document.createElement('div'); a.className = 'src ' + c.cls;
-      a.innerHTML = `<div class="sl">자료 ${c.id}</div><div class="stop"></div><div class="smeta"></div><p class="stext"></p>
-        <button type="button" class="btn scheck">🔍 누가 만들었을까?</button>
-        <div class="sreveal" hidden><b></b><span></span></div>
-        <button type="button" class="btn spick" hidden>이 자료를 골라요</button>`;
-      a.querySelector('.stop').textContent = c.top; a.querySelector('.smeta').textContent = c.meta; a.querySelector('.stext').textContent = c.text;
-      a.querySelector('.sreveal b').textContent = c.tag; a.querySelector('.sreveal span').textContent = c.why;
-      a.querySelector('.scheck').onclick = () => {
-        cur.hooks.sfx.pick(); seen.add(c.id);
-        a.querySelector('.scheck').hidden = true; a.querySelector('.sreveal').hidden = false; a.classList.add('seen');
-        if (seen.size === 3 && phase === 1) toPhase2();
-      };
-      a.querySelector('.spick').onclick = () => choose(c);
-      grid.appendChild(a); els[c.id] = a;
-    }
-    function toPhase2() {
-      phase = 2; qh.textContent = st.q2; qh.classList.add('pop');
-      for (const c of CARDS) els[c.id].querySelector('.spick').hidden = false;
-      setTimeout(() => qh.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-    }
-    function choose(c) {
-      if (done) return;
-      const a = els[c.id];
-      if (c.id === st.answer) {
-        done = true; a.classList.add('right');
-        for (const k in els) els[k].querySelector('.spick').disabled = true;
-        feedback(root, true, st.explain);
-      } else { a.classList.add('wrong'); a.querySelector('.spick').disabled = true; wrong(); feedback(root, false, st.fb[c.id]); }
-    }
-  };
-
-  // ---- 2) 사진 속 확인할 부분 누르기 ----
-  TYPES.hotspot = (root, st) => {
-    qText(root, st.q);
-    const cnt = document.createElement('div'); cnt.className = 'hscount'; root.appendChild(cnt);
-    const box = document.createElement('div'); box.className = 'hsbox'; root.appendChild(box);
-    const sc = sceneEl(st.scene); box.appendChild(sc);
-    // 사진과 누를 곳이 정확히 겹치도록 같은 상자에 넣어요
-    const img = document.createElement('div'); img.className = 'hsimg';
-    sc.insertBefore(img, sc.firstChild); img.appendChild(sc.querySelector('canvas'));
-    const layer = document.createElement('div'); layer.className = 'hslayer'; img.appendChild(layer);
-    const W = 204, H = 124, need = st.spots.filter((s) => s.need).length, found = new Set();
-    const upd = () => { cnt.innerHTML = `찾은 곳 <b>${found.size}</b> / ${need}`; };
-    upd();
-    for (const s of st.spots) {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'spot' + (s.need ? ' need' : '');
-      b.setAttribute('aria-label', s.label || '사진 속 물건');
-      Object.assign(b.style, { left: (s.x / W * 100) + '%', top: (s.y / H * 100) + '%', width: (s.w / W * 100) + '%', height: (s.h / H * 100) + '%' });
-      b.onclick = () => {
-        if (found.size === need) return;
-        if (s.need) {
-          if (found.has(s.id)) return;
-          found.add(s.id); b.classList.add('found'); b.innerHTML = `<span>${s.label}</span>`; cur.hooks.sfx.pick(); upd();
-          if (found.size === need) feedback(root, true, st.explain);
-          else feedback(root, true, s.fb, { title: '찾았어요! 🔍', nextLabel: '', onNext: null }).querySelector('.next').remove();
-        } else {
-          b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope');
-          const f = feedback(root, false, s.fb); f.querySelector('b').textContent = '음…';
-        }
-      };
-      layer.appendChild(b);
-    }
-  };
-
-  // ---- 7) 공유 전 체크리스트 완성하기 ----
-  TYPES.checklist = (root, st) => {
-    if (st.scene) root.appendChild(sceneEl(st.scene));
-    qText(root, st.q);
-    const board = document.createElement('ol'); board.className = 'cboard'; root.appendChild(board);
-    const need = st.pool.filter((p) => p.ok).length; const placed = [];
-    for (let i = 0; i < need; i++) { const li = document.createElement('li'); li.innerHTML = '<span class="cb">☐</span><span class="ct">여기에 질문을 넣어요</span><span class="cy"></span>'; board.appendChild(li); }
-    const pool = document.createElement('div'); pool.className = 'opts pool n' + st.pool.length; root.appendChild(pool);
-    st.pool.forEach((p, i) => {
-      const b = optButton(i, p.t); b.querySelector('.on').textContent = '＋'; pool.appendChild(b);
-      b.onclick = () => {
-        if (b.disabled) return;
-        if (!p.ok) { b.classList.add('wrong'); b.disabled = true; b.querySelector('.om').textContent = '✗'; wrong(); feedback(root, false, p.fb + ' 다른 질문을 골라요.'); return; }
-        cur.hooks.sfx.pick();
-        b.disabled = true; b.classList.add('used');
-        const li = board.children[placed.length]; placed.push(i);
-        li.classList.add('filled'); li.querySelector('.ct').textContent = p.t;
-        const fb = root.querySelector('.fb'); if (fb) fb.remove();
-        if (placed.length === need) {
-          pool.querySelectorAll('.opt').forEach((x) => { x.disabled = true; });
-          [...board.children].forEach((li2, j) => setTimeout(() => { li2.classList.add('yes'); li2.querySelector('.cb').textContent = '☑'; li2.querySelector('.cy').textContent = '네!'; cur.hooks.sfx.pick(); }, 300 + j * 380));
-          setTimeout(() => feedback(root, true, st.explain), 300 + need * 380);
-        }
-      };
-    });
-  };
-
   // ---- 5) 행동 카드 순서 배열하기 ----
   TYPES.order = (root, st) => {
     qText(root, st.q, '카드를 누르면 빈칸에 차례대로 들어가요. 빈칸을 누르면 카드가 돌아가요.');
@@ -840,13 +990,14 @@
     });
   };
 
-  // 키보드: 1~4로 보기 고르기, Enter로 다음
+  // 키보드: 1~6으로 보기 고르기
   window.addEventListener('keydown', (e) => {
     if (!cur || $('quiz').hidden) return;
     if (/^Digit[1-6]$/.test(e.code)) {
       const n = +e.code.slice(5) - 1;
-      const opts = $('qBody').querySelectorAll('.opts .opt');
-      if (opts[n] && !opts[n].disabled) { e.preventDefault(); opts[n].click(); }
+      const opts = [...$('qBody').querySelectorAll('.opts .opt')].filter((b) => !b.disabled);
+      const all = $('qBody').querySelectorAll('.opts:last-of-type .opt');
+      if (all[n] && !all[n].disabled) { e.preventDefault(); all[n].click(); } else void opts;
     }
   });
 

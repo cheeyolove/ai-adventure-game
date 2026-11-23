@@ -3,8 +3,8 @@
   'use strict';
   const CFG = window.AIX_CONFIG;
   const IMPORT_KEY = 'ai-explorers:teacher-imports';
-  const M = ['m1', 'm2', 'm3', 'm4', 'm5'];
-  const MN = ['① 영상 해변', '② 질문 마을', '③ 도서관', '④ 공유 광장', '⑤ 최종 시험'];
+  const M = ['m1', 'm2', 'm3', 'm4', 'm5', 'fin'];
+  const MN = ['① 영상 탐정', '② 소문 멈추기', '③ 물어보기', '④ 사실 확인', '⑤ 사진 비밀', '최종 인증'];
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmtTime = (sec) => { sec = Math.round(sec || 0); const m = Math.floor(sec / 60), s = sec % 60; return m ? `${m}분 ${s}초` : `${s}초`; };
@@ -19,13 +19,17 @@
 
   // 표로 바꾸기 쉬운 한 줄 모양
   function rowFromProfile(p) {
-    return { nick: p.nick, done: M.map((id) => !!p.missions[id].done), wrong: M.map((id) => p.missions[id].wrong || 0), playSecs: p.playSecs || 0, finishedAt: p.finishedAt || 0 };
+    const ms = p.missions || {}, g = (id) => ms[id] || {};
+    return { nick: p.nick, done: M.map((id) => !!g(id).done), wrong: M.map((id) => g(id).wrong || 0), playSecs: p.playSecs || 0, finishedAt: p.finishedAt || 0 };
   }
   function rowFromCode(code) {
-    const raw = code.trim().replace(/^AIX1-/, '');
+    const v1 = /^AIX1-/.test(code.trim());
+    const raw = code.trim().replace(/^AIX[12]-/, '');
     const o = JSON.parse(decodeURIComponent(escape(atob(raw))));
-    if (!o || typeof o.n !== 'string' || !/^[01]{5}$/.test(o.m)) throw new Error('bad');
-    return { nick: o.n.slice(0, 20), done: o.m.split('').map((c) => c === '1'), wrong: String(o.w || '').split('.').map((x) => +x || 0), playSecs: +o.s || 0, finishedAt: +o.f || 0 };
+    if (!o || typeof o.n !== 'string' || !(v1 ? /^[01]{5}$/ : /^[01]{6}$/).test(o.m)) throw new Error('bad');
+    let done = o.m.split('').map((c) => c === '1'), wrong = String(o.w || '').split('.').map((x) => +x || 0);
+    if (v1) { const idx = [0, -1, 1, 2, 3, 4]; done = idx.map((i) => (i < 0 ? false : done[i])); wrong = idx.map((i) => (i < 0 ? 0 : wrong[i] || 0)); }   // 첫 버전 코드 → 새 순서
+    return { nick: o.n.replace(/[<>&"']/g, '').slice(0, 20), done, wrong, playSecs: +o.s || 0, finishedAt: +o.f || 0 };
   }
 
   function renderTable(el, rows, withDelete) {
@@ -34,7 +38,7 @@
     for (const r of rows) {
       const all = r.done.every(Boolean), total = r.wrong.reduce((a, b) => a + b, 0);
       h += `<tr><td class="nick">${esc(r.nick)}</td>` + r.done.map((d) => `<td class="${d ? 'y' : 'n'}">${d ? '✔' : '–'}</td>`).join('') +
-        `<td class="all">${all ? '🏅 완료' : `${r.done.filter(Boolean).length} / 5`}</td><td>${total}</td><td>${r.wrong.join(' · ')}</td><td>${fmtTime(r.playSecs)}</td><td>${fmtDate(r.finishedAt)}</td>` +
+        `<td class="all">${all ? '🏅 완료' : `${r.done.filter(Boolean).length} / 6`}</td><td>${total}</td><td>${r.wrong.join(' · ')}</td><td>${fmtTime(r.playSecs)}</td><td>${fmtDate(r.finishedAt)}</td>` +
         (withDelete ? `<td><button class="mini" data-del="${esc(r.nick)}" type="button">지우기</button></td>` : '') + '</tr>';
     }
     el.innerHTML = h;
@@ -72,7 +76,7 @@
     refresh();
   };
   $('addCodes').onclick = () => {
-    const lines = $('codes').value.split(/\s+/).filter((l) => l.startsWith('AIX1-'));
+    const lines = $('codes').value.split(/\s+/).filter((l) => /^AIX[12]-/.test(l));
     const list = loadImports(); let ok = 0, bad = 0;
     for (const l of lines) {
       try { const r = rowFromCode(l); const i = list.findIndex((x) => x.nick === r.nick); if (i >= 0) list[i] = r; else list.push(r); ok++; } catch (e) { bad++; }

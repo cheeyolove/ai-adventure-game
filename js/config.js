@@ -12,4 +12,8 @@ window.AIX_CONFIG = {
   // 미션을 마칠 때마다 '별명·미션 완료 여부·다시 도전 횟수·걸린 시간'만 보냅니다.
   // 자세한 방법은 docs/teacher-results.md 를 보세요.
   RESULT_ENDPOINT: '',
+
+  // (선택) 함께 탐험 연결 서버. 비워 두면(null) PeerJS 공용 서버(0.peerjs.com)를 써요.
+  // 학교에서 직접 PeerJS 서버를 운영한다면 예: { host: 'peer.school.example', port: 443, path: '/', secure: true }
+  PEER_SERVER: null,
 };
