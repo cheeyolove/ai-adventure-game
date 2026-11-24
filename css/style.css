@@ -644,3 +644,24 @@ kbd { font-family: var(--fd); background: #fff; border: 2px solid var(--ink); bo
 .scolor { margin: 0; font-family: var(--fd); font-size: 16px; background: #fff; border: 2px solid var(--ink); border-radius: 99px; padding: 1px 12px; }
 .smsg.learn { font-size: 20px; color: var(--ink); background: var(--sun); border: 3px solid var(--ink); border-radius: 14px; padding: 6px 10px; animation: pop .5s; }
 .sstage.bubbly::after { content: "🫧"; position: absolute; top: 6px; left: 20%; font-size: 28px; animation: bob 1.2s infinite; }
+
+/* v3.1: 태블릿 가로(키 작은 화면)에서 시작 버튼이 잘리지 않게 */
+.screen.title { display: flex; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.screen.title > .tbox { margin: auto; }
+.mbox.scroll { touch-action: pan-y; }
+/* 별명 화면: 입력칸 바로 아래에 시작 버튼 (키보드가 올라와도 보이게) */
+#nameForm > * { order: 10; }
+#nameForm > .nseal { order: 1; } #nameForm > h2 { order: 2; } #nameForm > .sub { order: 3; }
+#nameForm > #nickInput { order: 4; } #nameForm > .err { order: 5; } #nameForm > .row { order: 6; margin-top: 0; }
+#nameForm > #suggest { order: 7; } #nameForm > .netpick { order: 8; }
+@media (max-height: 820px) {
+  .tbox { padding: 14px 18px; gap: 7px; }
+  #titleSeal { width: clamp(110px, 20vh, 170px); } #titleCaptain { width: clamp(80px, 14vh, 120px); }
+  .title h1 { font-size: clamp(34px, 7vh, 54px); }
+  .nseal { width: 96px; }
+  .tbox h2 { font-size: 24px; }
+  #nickInput { font-size: 21px; padding: 6px 12px; }
+  .chip { min-height: 38px; padding: 4px 12px; font-size: 16px; }
+  .netpick { padding: 6px 10px; }
+  .btn.big { min-height: 54px; padding: 10px 22px; font-size: 20px; }
+}
