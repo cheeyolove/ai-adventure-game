@@ -61,12 +61,33 @@
     hero: { body: '#e3f3fc', shade: '#a9cde6', belly: '#fffaf0', hat: '#3f86e0', hatDark: '#2a5fae', badge: '#ffd84a', bag: '#f2a54a', bagDark: '#c27a2c', kind: 'explorer' },
     captain: { body: '#efe2d2', shade: '#c9b39b', belly: '#fffaf2', hat: '#ffffff', hatDark: '#2a3f6e', badge: '#f6c445', bag: null, kind: 'captain' },
   };
+  // 몸통 색 14종 (파스텔이지만 배경·서로와 구분되게 조금 진하게). 눈·코·입·볼·배·윤곽선은 그대로예요.
+  const SEAL_COLORS = [
+    { id: 'sky', name: '하늘색', icon: '🩵', body: '#c4e4fb', shade: '#8ebfe4' },
+    { id: 'blossom', name: '벚꽃 분홍', icon: '🩷', body: '#ffcfe0', shade: '#ee9fbd' },
+    { id: 'lilac', name: '연보라', icon: '💜', body: '#dccdfb', shade: '#ae96e3' },
+    { id: 'vanilla', name: '바닐라 노랑', icon: '💛', body: '#fff09c', shade: '#e2c55a' },
+    { id: 'mint', name: '민트', icon: '💚', body: '#bdf0d6', shade: '#84d1ad' },
+    { id: 'apricot', name: '살구', icon: '🧡', body: '#ffd2ab', shade: '#ecaa72' },
+    { id: 'cream', name: '크림', icon: '🤍', body: '#f3e2c2', shade: '#d2b68a' },
+    { id: 'lavblue', name: '라벤더 블루', icon: '💙', body: '#c3cffa', shade: '#8e9fe2' },
+    { id: 'coral', name: '코랄 핑크', icon: '🌸', body: '#ffbcb0', shade: '#ec8676' },
+    { id: 'sage', name: '세이지 그린', icon: '🌿', body: '#cfe3bd', shade: '#9fbe86' },
+    { id: 'aqua', name: '아쿠아', icon: '🫧', body: '#b6ecee', shade: '#76cbd0' },
+    { id: 'lime', name: '연두 라임', icon: '🍈', body: '#e3f3a6', shade: '#b9d065' },
+    { id: 'orchid', name: '라일락 핑크', icon: '🪻', body: '#f1c6f0', shade: '#cf8fcf' },
+    { id: 'cloud', name: '구름 회색', icon: '☁️', body: '#dde2ea', shade: '#aab3c2' },
+  ];
+  const COLOR_BY_ID = Object.fromEntries(SEAL_COLORS.map((c) => [c.id, c]));
+  function heroPal(colorId) { const c = COLOR_BY_ID[colorId] || SEAL_COLORS[0]; return Object.assign({}, SEAL_PALETTES.hero, { body: c.body, shade: c.shade }); }
+
   // 착용 아이템(wear)을 함께 그려요. wear = { head, face, neck, body, back, hand } (fx는 지도에서 따로 그려요)
   // 그림 칸 36×32: 위쪽에 모자·머리띠, 오른쪽에 지팡이 자리를 남겨 두었어요. 발바닥은 항상 아래에서 2칸 위.
   const CLOTH = {
     raincoat: { c: '#ffd84a', d: '#e5b52a' },
     coat: { c: '#b98a5e', d: '#8f6440' },
     dress: { c: '#ff9ec0', d: '#ef78a4' },
+    vest: { c: '#ffa94d', d: '#e8862a' },
   };
   function sealBuf(pal, frame, wear) {
     const b = new Buf(36, 32);
@@ -99,9 +120,16 @@
         b.px([[17, 18 + oy], [18, 19 + oy], [22, 18 + oy], [21, 19 + oy]], '#e2c49a');
         b.rect(7, 21 + oy, 17, 1, '#5e3f27'); b.set(19, 21 + oy, '#ffd84a');
         b.set(20, 20 + oy, '#5e3f27'); b.set(20, 23 + oy, '#5e3f27');
+      } else if (W.body === 'vest') {   // 안전 조끼: 반사띠
+        b.rect(7, 20 + oy, 17, 1, '#fff6a8'); b.rect(12, 17 + oy, 1, 7, '#fff6a8'); b.rect(22, 17 + oy, 1, 6, '#fff6a8');
       } else {   // 우비 단추
         b.set(20, 20 + oy, '#2c7fd6'); b.set(20, 22 + oy, '#2c7fd6'); b.rect(15, 18 + oy, 10, 1, '#fff1a8');
       }
+    }
+    if (W.body === 'cape') {   // 디지털 안전 망토: 등 뒤로 흘러내린 망토 + 세 가지 약속 점
+      b.ell(9, 18 + oy, 6.5, 6, '#a68af0', true); b.ell(9, 21 + oy, 6, 3, '#8a6ce0', true);
+      b.rect(13, 16 + oy, 11, 2, '#7d5cd0'); b.set(19, 16 + oy, '#ffd84a');
+      b.set(6, 17 + oy, '#ff8a80'); b.set(9, 16 + oy, '#ffd84a'); b.set(11, 18 + oy, '#7ad7a0');
     }
     // 앞 지느러미
     const fl = cl ? cl.d : P.shade;
@@ -119,8 +147,12 @@
       b.rect(6, 13 + oy, 6, 5, '#f2a54a'); b.rect(6, 13 + oy, 6, 2, '#c27a2c'); b.set(8, 15 + oy, '#ffd84a'); b.set(9, 15 + oy, '#ffd84a');
       b.px([[12, 13 + oy], [13, 14 + oy], [14, 15 + oy], [15, 16 + oy]], '#c27a2c');
     } else if (W.back === 'backpack') {
-      b.rect(5, 12 + oy, 7, 7, '#c58fe0'); b.rect(5, 12 + oy, 7, 2, '#9d63c0'); b.rect(7, 16 + oy, 3, 2, '#f1c9f8'); b.set(8, 13 + oy, '#ffd84a');
+      b.rect(5, 12 + oy, 7, 7, '#c58fe0'); b.rect(5, 12 + oy, 7, 2, '#9d63c0'); b.rect(7, 16 + oy, 3, 2, '#ffd84a'); b.set(8, 15 + oy, '#ffd84a'); b.set(8, 17 + oy, '#9d63c0');
       b.px([[12, 13 + oy], [13, 14 + oy], [14, 15 + oy], [15, 16 + oy]], '#9d63c0');
+    }
+    if (W.back === 'pouch') {   // 신중한 공유 파우치 (어깨에 멘 작은 가방)
+      b.px([[13, 15 + oy], [14, 16 + oy], [15, 17 + oy], [16, 18 + oy], [17, 19 + oy]], '#c2558a');
+      b.rect(16, 20 + oy, 6, 4, '#ff9ec0'); b.rect(16, 20 + oy, 6, 1, '#e0709e'); b.set(18, 21 + oy, '#ffffff'); b.set(19, 21 + oy, '#ffffff');
     }
     // 눈
     const eyes = [[16, 11 + oy], [22, 11 + oy]];
@@ -139,12 +171,16 @@
     if (W.neck === 'ribbon') {
       b.rect(16, 17 + oy, 3, 3, '#ff5a5a'); b.rect(21, 17 + oy, 3, 3, '#ff5a5a'); b.rect(19, 18 + oy, 2, 1, '#d63c3c'); b.set(17, 18 + oy, '#ff9a9a'); b.set(22, 18 + oy, '#ff9a9a');
     } else if (W.neck === 'scarf') {
-      b.rect(13, 17 + oy, 13, 2, '#4f9de8'); b.rect(13, 18 + oy, 13, 1, '#2f7fd0'); b.rect(14, 19 + oy, 2, 4, '#4f9de8'); b.set(14, 22 + oy, '#ffffff'); b.set(15, 22 + oy, '#ffffff');
+      for (let x = 13; x < 26; x++) { b.set(x, 17 + oy, x % 3 === 0 ? '#ffffff' : '#ff5a5a'); b.set(x, 18 + oy, '#d63c3c'); }
+      b.rect(14, 19 + oy, 2, 4, '#ff5a5a'); b.set(14, 20 + oy, '#ffffff'); b.set(15, 20 + oy, '#ffffff'); b.set(14, 22 + oy, '#d63c3c'); b.set(15, 22 + oy, '#d63c3c');
     }
     // 얼굴
     if (W.face === 'glasses') {
       for (const ex of [15, 21]) { b.rect(ex, 10 + oy, 4, 1, '#6b4a2a'); b.rect(ex, 14 + oy, 4, 1, '#6b4a2a'); b.rect(ex, 10 + oy, 1, 5, '#6b4a2a'); b.rect(ex + 3, 10 + oy, 1, 5, '#6b4a2a'); }
       b.rect(19, 11 + oy, 2, 1, '#6b4a2a');
+    } else if (W.face === 'goggles') {   // 비교 탐험 고글
+      b.rect(12, 11 + oy, 2, 2, '#5b6b8c'); b.rect(25, 11 + oy, 2, 2, '#5b6b8c');
+      for (const ex of [14, 20]) { b.rect(ex, 9 + oy, 6, 1, '#2fa89a'); b.rect(ex, 14 + oy, 6, 1, '#2fa89a'); b.rect(ex, 9 + oy, 1, 6, '#2fa89a'); b.rect(ex + 5, 9 + oy, 1, 6, '#2fa89a'); b.set(ex + 1, 10 + oy, '#d9fbf6'); b.set(ex + 4, 13 + oy, '#d9fbf6'); }
     } else if (W.face === 'sunglasses') {
       for (const ex of [15, 21]) { b.rect(ex, 10 + oy, 4, 4, '#1b2236'); b.set(ex, 10 + oy, '#7d8db0'); b.set(ex + 1, 10 + oy, '#7d8db0'); }
       b.rect(19, 11 + oy, 2, 1, '#1b2236');
@@ -162,6 +198,18 @@
       } else if (W.head === 'star') {
         b.px([[14, 7 + oy], [15, 6 + oy], [16, 6 + oy], [17, 5 + oy], [18, 5 + oy], [19, 5 + oy], [20, 5 + oy], [21, 5 + oy], [22, 5 + oy], [23, 6 + oy], [24, 6 + oy], [25, 7 + oy]], '#ff8fb6');
         b.px([[21, 0 + oy], [20, 1 + oy], [21, 1 + oy], [22, 1 + oy], [18, 2 + oy], [19, 2 + oy], [20, 2 + oy], [21, 2 + oy], [22, 2 + oy], [23, 2 + oy], [24, 2 + oy], [20, 3 + oy], [21, 3 + oy], [22, 3 + oy], [19, 4 + oy], [20, 4 + oy], [22, 4 + oy], [23, 4 + oy]], '#ffd84a');
+      } else if (W.head === 'alert') {   // 위험 탐지 모자 (경고 삼각형 배지)
+        b.ell(19.5, 6 + oy, 6, 3.6, '#ff8a5b');
+        b.map((x, y, c) => (c === '#ff8a5b' && y > 6 + oy ? null : undefined));
+        b.rect(14, 6 + oy, 11, 1, '#d9623a'); b.rect(13, 7 + oy, 15, 1, '#d9623a');
+        b.px([[20, 2 + oy], [19, 3 + oy], [20, 3 + oy], [21, 3 + oy], [18, 4 + oy], [19, 4 + oy], [20, 4 + oy], [21, 4 + oy], [22, 4 + oy]], '#ffe14a'); b.set(20, 3 + oy, '#3a2a35');
+      } else if (W.head === 'crown') {   // AI 탐정 왕관
+        b.rect(15, 4 + oy, 10, 3, '#ffd84a'); b.rect(15, 6 + oy, 10, 1, '#e0a800');
+        b.px([[15, 2 + oy], [15, 3 + oy], [19, 1 + oy], [20, 1 + oy], [19, 2 + oy], [20, 2 + oy], [19, 3 + oy], [20, 3 + oy], [24, 2 + oy], [24, 3 + oy]], '#ffd84a');
+        b.set(17, 5 + oy, '#ff5a7a'); b.set(20, 5 + oy, '#5fb4ff'); b.set(22, 5 + oy, '#7ad7a0');
+      } else if (W.head === 'phones') {   // 소문 차단 헤드폰
+        b.px([[13, 8 + oy], [13, 7 + oy], [14, 6 + oy], [15, 5 + oy], [16, 4 + oy], [17, 4 + oy], [18, 3 + oy], [19, 3 + oy], [20, 3 + oy], [21, 3 + oy], [22, 4 + oy], [23, 4 + oy], [24, 5 + oy], [25, 6 + oy], [26, 7 + oy], [26, 8 + oy]], '#5b6b8c');
+        b.rect(11, 8 + oy, 3, 5, '#ff8fb6'); b.rect(25, 8 + oy, 3, 5, '#ff8fb6'); b.set(12, 10 + oy, '#ffffff'); b.set(26, 10 + oy, '#ffffff');
       } else if (W.head === 'flower') {
         b.px([[14, 6 + oy], [16, 6 + oy], [13, 7 + oy], [17, 7 + oy], [14, 8 + oy], [16, 8 + oy], [15, 5 + oy], [15, 9 + oy]], '#ff7aa8');
         b.set(15, 7 + oy, '#ffd84a'); b.px([[14, 7 + oy], [16, 7 + oy], [15, 6 + oy], [15, 8 + oy]], '#ffb3c9'); b.set(17, 9 + oy, '#5cbf62');
@@ -181,6 +229,10 @@
     } else if (W.hand === 'staff') {
       for (let y = 8; y <= 25; y++) b.set(30, y + oy, '#b9774a');
       b.ell(30, 6 + oy, 3, 2.6, '#ffb3a7'); b.px([[29, 5 + oy], [30, 4 + oy], [31, 5 + oy]], '#f08a7c'); b.set(30, 6 + oy, '#ffffff');
+    }
+    else if (W.hand === 'wand') {   // 진실 찾기 별봉
+      for (let y = 9; y <= 25; y++) b.set(30, y + oy, y % 4 === 0 ? '#ffffff' : '#c58fe0');
+      b.px([[30, 3 + oy], [29, 4 + oy], [30, 4 + oy], [31, 4 + oy], [27, 5 + oy], [28, 5 + oy], [29, 5 + oy], [30, 5 + oy], [31, 5 + oy], [32, 5 + oy], [33, 5 + oy], [29, 6 + oy], [30, 6 + oy], [31, 6 + oy], [28, 7 + oy], [29, 7 + oy], [31, 7 + oy], [32, 7 + oy]], '#ffd84a');
     }
     if (frame === 'think') { b.set(28, 8 + oy, '#7cc8ff'); b.rect(27, 9 + oy, 3, 2, '#7cc8ff'); }
     b.outline();
@@ -465,15 +517,15 @@
   // 꾸민 바다표범 (착용 아이템별로 따로 저장)
   const WEAR_SLOTS = ['head', 'face', 'neck', 'body', 'back', 'hand'];
   function wearKey(w) { return WEAR_SLOTS.map((k) => (w && w[k]) || '-').join('.'); }
-  function seal(wear, frame = 'idle', flip = false) {
-    const key = 'seal:' + wearKey(wear) + ':' + frame + (flip ? ':f' : '');
+  function seal(wear, frame = 'idle', flip = false, color = 'sky') {
+    const key = 'seal:' + (color || 'sky') + ':' + wearKey(wear) + ':' + frame + (flip ? ':f' : '');
     if (cache.has(key)) return cache.get(key);
-    let cv = flip ? mirror(seal(wear, frame, false)) : sealBuf(SEAL_PALETTES.hero, frame, wear).canvas();
+    const cv = flip ? mirror(seal(wear, frame, false, color)) : sealBuf(heroPal(color), frame, wear).canvas();
     cache.set(key, cv); return cv;
   }
-  function sealUrl(wear, frame = 'idle', k = 6) {
-    const key = 'sealurl:' + wearKey(wear) + ':' + frame + ':' + k;
-    if (!urlCache.has(key)) urlCache.set(key, upscale(seal(wear, frame), k).toDataURL());
+  function sealUrl(wear, frame = 'idle', k = 6, color = 'sky') {
+    const key = 'sealurl:' + (color || 'sky') + ':' + wearKey(wear) + ':' + frame + ':' + k;
+    if (!urlCache.has(key)) urlCache.set(key, upscale(seal(wear, frame, false, color), k).toDataURL());
     return urlCache.get(key);
   }
   const urlCache = new Map();
@@ -484,5 +536,5 @@
     return urlCache.get(key);
   }
 
-  window.PX = { Buf, sprite, flipped, url, upscale, mirror, OUT, seal, sealUrl, wearKey, WEAR_SLOTS };
+  window.PX = { Buf, sprite, flipped, url, upscale, mirror, OUT, seal, sealUrl, wearKey, WEAR_SLOTS, SEAL_COLORS, COLOR_BY_ID };
 })();

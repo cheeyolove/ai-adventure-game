@@ -7,6 +7,16 @@
 //  3) 방장은 0.2초마다 모두의 위치·이름·착용 아이템을 손님 모두에게 보내요. (별 모양 연결)
 //  4) 방장이 나가면 손님들이 신호가 끊긴 것을 알아차리고, 다시 1)부터 해서 새 방장이 생겨요.
 // 판다 탐험대(pandagrad12-…)와 아이디 앞부분이 달라서 방이 섞이지 않아요.
+//
+// 몸 색 정하기: 각자 브라우저가 고른 색만으로는 같은 방에서 겹치지 않는다고 보장할 수 없어요.
+// 그래서 방장이 정해요. 학생은 '원하는 색'(저장된 내 색)을 보내고, 방장은
+//  - 방 안에서 아무도 안 쓰는 색이면 그대로 허락하고,
+//  - 이미 누가 쓰고 있으면 구분하기 쉬운 순서(ASSIGN)에서 빈 색을 골라 줘요.
+//  - 14색을 모두 쓰고 있으면(15명 이상) 원래 색을 그대로 둬요. (같은 색이 생기지만 이름표로 구분)
+//  - 잠깐 나간 학생(새로고침)의 색은 60초 동안 맡아 둬서, 돌아오면 같은 색을 다시 받아요.
+//  - 한 번 허락받은 색은 그 학생이 있는 동안 바꾸지 않아요. (누가 나가도 다른 학생 색이 바뀌지 않게)
+// 방장은 메시지를 하나씩 차례로 처리하므로 두 명이 동시에 들어와도 먼저 도착한 학생이 그 색을 가져요.
+// 학생은 받은 색을 저장해서, 새로고침·재접속해도 같은 색을 다시 원하게 돼요.
 (function () {
   'use strict';
   const CFG = window.AIX_CONFIG || {};
@@ -16,6 +26,27 @@
   const clean = (s) => String(s || '').normalize('NFC').replace(/\s+/g, '').replace(/[^0-9A-Za-z가-힣]/g, '').toUpperCase().slice(0, 12);
   const roomKey = (room) => Array.from(new TextEncoder().encode(room), (b) => b.toString(16).padStart(2, '0')).join('');
   const changed = () => { if (N.onChange) N.onChange(); };
+  const ASSIGN = ['sky', 'blossom', 'vanilla', 'mint', 'lilac', 'apricot', 'aqua', 'coral', 'sage', 'cloud', 'orchid', 'lime', 'lavblue', 'cream'];
+  const validColor = (c) => typeof c === 'string' && !!(window.PX && PX.COLOR_BY_ID[c]);
+  // 방장: id 학생에게 줄 색 (원하는 색 want)
+  const reserved = new Map();   // 잠깐 나간 학생의 색을 60초 동안 맡아 둬요 (익명 아이디 u → { c, t })
+  function reserve(o) { if (o && o.u && o.c) reserved.set(o.u, { c: o.c, t: performance.now() }); }
+  function grant(id, want, uid) {
+    const cur = N.others.get(id);
+    if (cur && cur.c && cur.c === want) return want;   // 이미 허락받은 색은 계속 그 학생 색이에요 (다른 학생이 나가도 바꾸지 않아요)
+    const used = new Map(), add = (c) => { if (c) used.set(c, (used.get(c) || 0) + 1); };
+    add(N.mine().c);
+    const present = new Set();
+    for (const [oid, o] of N.others) if (oid !== id && !(uid && o.u === uid)) { add(o.c); if (o.u) present.add(o.u); }
+    const now = performance.now();
+    for (const [u, r] of [...reserved]) { if (now - r.t > 60000) { reserved.delete(u); continue; } if (u !== uid && !present.has(u)) add(r.c); }
+    if (validColor(want) && !used.has(want)) return want;              // 아무도 안 쓰는 색 → 그대로
+    const free = ASSIGN.find((c) => !used.has(c));
+    if (free) return free;                                              // 겹치면 구분하기 쉬운 빈 색
+    if (validColor(want)) return want;                                  // 14색을 다 쓰는 중(15명 이상) → 바꿔도 겹쳐서 그대로 (이름표로 구분)
+    let best = ASSIGN[0], bc = Infinity; for (const c of ASSIGN) { const n = used.get(c) || 0; if (n < bc) { bc = n; best = c; } }
+    return best;
+  }
 
   // 연결 서버: 기본은 PeerJS 공용 서버. (테스트용 ?peer=localhost:9000, 또는 config.js 의 PEER_SERVER)
   function peerOptions() {
@@ -30,9 +61,9 @@
     return new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'vendor/peerjs-1.5.4.min.js'; s.onload = () => (window.Peer ? res() : rej(new Error('nolib'))); s.onerror = () => rej(new Error('nolib')); document.head.appendChild(s); });
   }
 
-  async function start(room, mine, onChange) {
+  async function start(room, mine, onChange, onColor) {
     leave();
-    N.room = clean(room) || '바다'; N.hostId = PREFIX + roomKey(N.room); N.mine = mine; N.onChange = onChange;
+    N.room = clean(room) || '바다'; N.hostId = PREFIX + roomKey(N.room); N.mine = mine; N.onChange = onChange; N.onColor = onColor;
     N.status = 'connecting'; N.tries = 0; N.why = ''; changed();
     try { await loadLib(); } catch (e) { fail('연결 프로그램을 불러오지 못했어요.'); return; }
     clearTimeout(N.timer); N.timer = setTimeout(() => { if (N.status === 'connecting') fail('시간 안에 연결되지 않았어요.'); }, 15000);
@@ -76,8 +107,14 @@
   function hostConn(c) {
     if (N.conns.size >= 30) { try { c.close(); } catch (e) { } return; }
     N.conns.set(c.peer, c);
-    c.on('data', (d) => { const s = state(d); if (s) upsert(c.peer, s); });
-    const bye = () => { N.conns.delete(c.peer); N.others.delete(c.peer); changed(); };
+    c.on('data', (d) => {
+      const s = state(d); if (!s) return;
+      // 새로고침한 학생: 같은 익명 아이디(u)로 남아 있던 예전 연결(유령)을 바로 지워요 → 인원·색이 겹치지 않아요
+      if (s.u) reserved.delete(s.u);
+      if (s.u) for (const [oid, o] of [...N.others]) if (oid !== c.peer && o.u === s.u) { N.others.delete(oid); const oc = N.conns.get(oid); N.conns.delete(oid); try { if (oc) oc.close(); } catch (e) { } changed(); }
+      s.c = grant(c.peer, s.c, s.u); upsert(c.peer, s);
+    });
+    const bye = () => { reserve(N.others.get(c.peer)); N.conns.delete(c.peer); N.others.delete(c.peer); changed(); };
     c.on('close', bye); c.on('error', bye);
   }
   function online() { N.lastRx = performance.now(); clearTimeout(N.timer); N.status = 'on'; N.tries = 0; N.lastSent = ''; N.sendT = 0; changed(); }
@@ -105,6 +142,8 @@
       x: Math.max(0, Math.min(2000, x)), y: Math.max(0, Math.min(2000, y)),
       f: d.f < 0 ? -1 : 1, m: !!d.m, q: !!d.q, e: typeof d.e === 'string' && /^(happy|clap|think)$/.test(d.e) ? d.e : '',
       w: window.Shop ? Shop.cleanWear(d.w) : {}, b: Math.max(0, Math.min(6, Number(d.b) || 0)),
+      c: validColor(d.c) ? d.c : '',
+      u: typeof d.u === 'string' && /^[a-z0-9]{6,16}$/.test(d.u) ? d.u : '',
     };
   }
   function upsert(id, s) {
@@ -116,7 +155,9 @@
     if (!d || d.t !== 'all' || !Array.isArray(d.p)) return;
     N.lastRx = performance.now();
     const myId = N.peer && N.peer.id, seen = new Set();
-    for (const it of d.p.slice(0, 40)) { if (!it || it.id === myId) continue; const s = state(it); if (s) { upsert(String(it.id).slice(0, 64), s); seen.add(String(it.id).slice(0, 64)); } }
+    for (const it of d.p.slice(0, 40)) {
+      if (it && it.id === myId) { if (validColor(it.c) && it.c !== N.mine().c && N.onColor) N.onColor(it.c); continue; }   // 방장이 정해 준 내 색
+      if (!it) continue; const s = state(it); if (s && s.u && s.u === N.mine().u) continue; /* 방장 쪽에 잠깐 남은 내 예전 연결 */ if (s) { upsert(String(it.id).slice(0, 64), s); seen.add(String(it.id).slice(0, 64)); } }
     let gone = false; for (const id of [...N.others.keys()]) if (!seen.has(id)) { N.others.delete(id); gone = true; }
     if (gone) changed();
   }
@@ -126,8 +167,8 @@
     N.sendT -= dt; if (N.sendT > 0) return; N.sendT = 0.2;
     const mine = N.mine(), js = JSON.stringify(mine), now = performance.now();
     if (N.host) {
-      for (const [id, o] of N.others) if (now - (o.seen || 0) > 8000) { N.others.delete(id); changed(); }
-      const all = [{ id: N.peer.id, ...mine }, ...[...N.others].map(([id, o]) => ({ id, n: o.n, x: Math.round(o.x), y: Math.round(o.y), f: o.f, m: o.m ? 1 : 0, q: o.q ? 1 : 0, e: o.e, w: o.w, b: o.b }))];
+      for (const [id, o] of N.others) if (now - (o.seen || 0) > 8000) { reserve(o); N.others.delete(id); changed(); }
+      const all = [{ id: N.peer.id, ...mine }, ...[...N.others].map(([id, o]) => ({ id, n: o.n, x: Math.round(o.x), y: Math.round(o.y), f: o.f, m: o.m ? 1 : 0, q: o.q ? 1 : 0, e: o.e, w: o.w, b: o.b, c: o.c, u: o.u }))];
       const msg = { t: 'all', p: all };
       for (const c of N.conns.values()) { try { if (c.open) c.send(msg); } catch (e) { } }
     } else if (now - (N.lastRx || now) > 5000) { log('host silent'); lost(); }

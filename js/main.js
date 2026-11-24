@@ -9,10 +9,14 @@
   const COIN_GAME = 20, COIN_FIN = 30;                  // 처음 완료할 때만: 20×5 + 30 = 130코인
 
   // ================= 저장 =================
+  // 처음 만든 학생에게 몸 색을 하나 뽑아 줘요. (같은 방에서 겹치면 방장이 다른 색으로 바꿔 줘요 → net.js)
+  // 함께 탐험에서 '같은 학생이 다시 들어왔는지' 알아보는 무작위 아이디 (이름·기기 정보와 관계없어요)
+  function newUid() { return Array.from({ length: 10 }, () => 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)]).join(''); }
+  function randomColor() { const c = PX.SEAL_COLORS; return c[Math.floor(Math.random() * c.length)].id; }
   // 저장 키는 'ai-explorers:' 로 시작 → 판다 탐험대('panda-...')와 겹치지 않아요.
   function blankMissions() { const m = {}; for (const id of MISSIONS) m[id] = { done: false, wrong: 0, secs: 0, doneAt: null, coined: false }; return m; }
   function newProfile(nick) {
-    return { nick, createdAt: Date.now(), introDone: false, missions: blankMissions(), finishedAt: null, playSecs: 0, pos: null, coins: 0, coinLog: [], owned: [], wear: { head: 'hat', back: 'bag' } };
+    return { nick, createdAt: Date.now(), introDone: false, missions: blankMissions(), finishedAt: null, playSecs: 0, pos: null, coins: 0, coinLog: [], owned: [], wear: { head: 'hat', back: 'bag' }, color: randomColor(), uid: newUid() };
   }
   // v1(첫 버전) 기록 → v2: 예전 미션 순서를 새 미니게임에 옮기고, 이미 끝낸 미션의 코인을 한 번 넣어 줘요.
   //   v1 m1 영상 해변 → m1 / v1 m2 질문 마을 → m3 / v1 m3 도서관 → m4 / v1 m4 공유 광장 → m5 / v1 m5 최종 시험 → fin
@@ -36,6 +40,7 @@
     return { v: 2, current: null, players: {} };
   }
   let store = loadStore();
+  for (const p of Object.values(store.players)) { if (!PX.COLOR_BY_ID[p.color]) p.color = randomColor(); if (!/^[a-z0-9]{10}$/.test(p.uid || '')) p.uid = newUid(); }   // 예전 기록에도 색을 한 번 정해 줘요 (코인·아이템은 그대로)
   let memoryOnly = false;
   function save() { try { localStorage.setItem(CFG.STORAGE_KEY, JSON.stringify(store)); } catch (e) { memoryOnly = true; } }
   save();
@@ -46,6 +51,8 @@
   function doneCount(p = prof(), list = GAMES) { return p ? list.filter((id) => p.missions[id].done).length : 0; }
   const allDone = (p = prof()) => p && MISSIONS.every((id) => p.missions[id].done);
   const myWear = () => { const p = prof(); return Shop.cleanWear(p && p.wear); };
+  const myColor = () => { const p = prof(); return (p && PX.COLOR_BY_ID[p.color]) ? p.color : 'sky'; };
+  const colorOf = (id) => PX.COLOR_BY_ID[id] || PX.SEAL_COLORS[0];
 
   // ================= 소리 =================
   let actx = null;
@@ -208,7 +215,7 @@
   function nextTarget() { const p = prof(); if (!p) return null; if (!p.introDone) return NPC.captain; const id = firstOpen(); return id ? NPC[MISSION_NPC[id]] : null; }
   function updateHud() {
     const p = prof(); if (!p) return;
-    $('hudName').textContent = '🦭 ' + p.nick;
+    $('hudName').textContent = colorOf(myColor()).icon + ' ' + p.nick;   // 내 몸 색 표시
     $('hudCoins').textContent = p.coins || 0;
     const wrap = $('hudBadges'); wrap.innerHTML = '';
     for (const id of MISSIONS) {
@@ -231,7 +238,7 @@
   // ================= 대화 =================
   let dlg = null;
   const WHO = {
-    hero: () => ({ name: prof() ? prof().nick : '나', url: (fr) => PX.sealUrl(myWear(), fr, 5) }),
+    hero: () => ({ name: prof() ? prof().nick : '나', url: (fr) => PX.sealUrl(myWear(), fr, 5, myColor()) }),
     captain: () => ({ name: '탐험대장 바다표범', spr: 'captain' }), octopus: () => ({ name: '문어 박사', spr: 'octopus' }),
     turtle: () => ({ name: '거북 선생님', spr: 'turtle' }), fish: () => ({ name: '작은 물고기', spr: 'fish' }),
     penguin: () => ({ name: '확인 도우미 펭귄', spr: 'penguin' }), jelly: () => ({ name: '해파리', spr: 'jelly' }),
@@ -360,7 +367,7 @@
     $('badgeMsg').textContent = MISSION_INFO[id].msg;
     $('badgeCount').textContent = `배지 ${doneCount(prof(), MISSIONS)} / 6`;
     $('badgeCoin').hidden = !amt; $('badgeCoin').textContent = `🪙 +${amt} 코인!`;
-    $('badgeSeal').src = PX.sealUrl(myWear(), 'clap', 5);
+    $('badgeSeal').src = PX.sealUrl(myWear(), 'clap', 5, myColor());
     $('badgeModal').hidden = false;
     sfx.badge(); confetti();
     if (amt) setTimeout(() => flyCoins(amt), 500);
@@ -383,7 +390,7 @@
       mode = 'quiz';
       $('finale').hidden = false; confetti(); sfx.badge();
       let f = 0; const img = $('finaleSeal');
-      const dance = setInterval(() => { if ($('finale').hidden) { clearInterval(dance); return; } f++; img.src = PX.sealUrl(myWear(), ['happy', 'clap', 'walk1', 'clap'][f % 4], 6); }, 260);
+      const dance = setInterval(() => { if ($('finale').hidden) { clearInterval(dance); return; } f++; img.src = PX.sealUrl(myWear(), ['happy', 'clap', 'walk1', 'clap'][f % 4], 6, myColor()); }, 260);
       $('finaleOk').onclick = () => { $('finale').hidden = true; clearInterval(dance); showCert(); };
     });
   }
@@ -396,7 +403,7 @@
   }
   function showCert() {
     const p = prof(); mode = 'quiz';
-    $('certSeal').src = PX.sealUrl(myWear(), 'happy', 7);
+    $('certSeal').src = PX.sealUrl(myWear(), 'happy', 7, myColor());
     $('certCaptain').src = PX.url('captain', 'idle', 5);
     $('certName').textContent = p.nick;
     const d = new Date(p.finishedAt || Date.now());
@@ -462,14 +469,14 @@
     for (const p of World.PROPS) list.push({ y: p.y, draw: () => drawProp(p, cx, cy) });
     for (const s of World.SIGNS) list.push({ y: s.y, draw: () => drawSign(s, cx, cy) });
     for (const n of NPCS) list.push({ y: n.y, draw: () => drawNpc(n, cx, cy) });
-    for (const o of Net.others.values()) list.push({ y: o.ry, draw: () => drawSeal(o.rx, o.ry, o.f, o.mv ? (Math.floor(time / 0.16) % 2 ? 'walk1' : 'walk2') : (o.e || 'idle'), o.w, cx, cy) });
+    for (const o of Net.others.values()) list.push({ y: o.ry, draw: () => drawSeal(o.rx, o.ry, o.f, o.mv ? (Math.floor(time / 0.16) % 2 ? 'walk1' : 'walk2') : (o.e || 'idle'), o.w, cx, cy, o.c) });
     list.push({ y: hero.y, draw: () => drawHero(cx, cy) });
     list.sort((a, b) => a.y - b.y);
     for (const d of list) d.draw();
     if (tapMark) { tapMark.t += 1 / 60; const r = 3 + tapMark.t * 10; ctx.strokeStyle = `rgba(255,255,255,${Math.max(0, 1 - tapMark.t * 2)})`; ctx.lineWidth = S; ctx.beginPath(); ctx.ellipse(P(tapMark.x - cx), P(tapMark.y - cy), r * S, r * 0.55 * S, 0, 0, Math.PI * 2); ctx.stroke(); if (tapMark.t > 0.6) tapMark = null; }
     for (const n of NPCS) drawNpcLabel(n, cx, cy);
-    for (const o of Net.others.values()) drawTag(o.rx - cx, o.ry - 34 - cy, (o.q ? '📝 ' : '') + o.n, 'other');
-    if (Net.status === 'on') drawTag(hero.x - cx, hero.y - 34 - cy, '나 · ' + (prof() ? prof().nick : ''), 'me');
+    for (const o of Net.others.values()) drawTag(o.rx - cx, o.ry - 36 - cy, (o.q ? '📝 ' : '') + o.n, 'other', o.c);
+    if (Net.status === 'on') drawTag(hero.x - cx, hero.y - 36 - cy, '나 · ' + (prof() ? prof().nick : ''), 'me', myColor());
     drawGuide(cx, cy);
   }
   function shadow(x, y, w) { ctx.fillStyle = 'rgba(38,52,79,0.18)'; ctx.beginPath(); ctx.ellipse(x * S, y * S, w * S, w * 0.32 * S, 0, 0, Math.PI * 2); ctx.fill(); }
@@ -514,26 +521,33 @@
     ctx.drawImage(img, x * S, y * S, img.width * S, img.height * S);
   }
   // 바다표범 (나 · 친구) — 착용 아이템이 걸음마다 함께 움직여요
-  function drawSeal(wx, wy, face, fr, wear, cx, cy) {
-    const img = PX.seal(wear, fr, face < 0);
+  function drawSeal(wx, wy, face, fr, wear, cx, cy, color) {
+    const img = PX.seal(wear, fr, face < 0, color || 'sky');
     const x = Math.round(wx - img.width / 2 - cx), y = Math.round(wy - img.height + 2 - cy);
     if (x > VW || y > VH + 10 || x + img.width < 0 || y + img.height < -10) return;
     shadow(wx - cx, wy - cy - 1, 12);
     ctx.drawImage(img, x * S, y * S, img.width * S, img.height * S);
+    if (wear && wear.fx === 'bubbles') {   // 소문 멈춤 방울: 작은 물방울이 동동 올라가요
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.fillStyle = 'rgba(191,234,255,0.45)'; ctx.lineWidth = Math.max(1, S * 0.6);
+      for (let i = 0; i < 4; i++) { const t = (time * 0.5 + i / 4) % 1; const bx = wx - cx + Math.sin(time * 2 + i * 2) * 4 + (i - 1.5) * 8, by = wy - cy - 8 - t * 30, r = (1.6 + (i % 2)) * (1 - t * 0.3); ctx.beginPath(); ctx.arc(bx * S, by * S, r * S, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+    }
     if (wear && wear.fx === 'sparkle') {
       ctx.fillStyle = '#fff6a8';
       for (let i = 0; i < 4; i++) { const a = time * 2 + i * 1.6, r = 14 + Math.sin(time * 3 + i) * 3; const sx = wx - cx + Math.cos(a) * r, sy = wy - 14 - cy + Math.sin(a) * r * 0.6; const z = (Math.sin(time * 6 + i * 2) + 1) * 0.8 + 0.6; ctx.fillRect(Math.round(sx - z) * S, Math.round(sy) * S, Math.ceil(z * 2 + 1) * S, S); ctx.fillRect(Math.round(sx) * S, Math.round(sy - z) * S, S, Math.ceil(z * 2 + 1) * S); }
     }
   }
   function heroFrame() { if (hero.emoteT > 0) return hero.emote; if (hero.moving) return Math.floor(hero.anim / 0.16) % 2 ? 'walk1' : 'walk2'; return (time % 3.4) > 3.25 ? 'blink' : 'idle'; }
-  function drawHero(cx, cy) { drawSeal(hero.x, hero.y, hero.face, heroFrame(), myWear(), cx, cy); }
-  function drawTag(mx, top, text, kind) {
+  function drawHero(cx, cy) { drawSeal(hero.x, hero.y, hero.face, heroFrame(), myWear(), cx, cy, myColor()); }
+  // 이름표: 흰 바탕에 굵은 글씨 + 왼쪽에 몸 색 동그라미 (나는 노란 바탕)
+  function drawTag(mx, top, text, kind, color) {
     if (mx < -60 || mx > VW + 60 || top > VH || top < -20) return;
-    ctx.font = `${5.2 * S}px Jua, "Gowun Dodum", sans-serif`;
-    const tw = ctx.measureText(text).width, bw = tw + 8 * S, bh = 9 * S, bx = mx * S - bw / 2, by = top * S;
-    ctx.fillStyle = kind === 'me' ? 'rgba(255,216,74,0.95)' : 'rgba(255,255,255,0.92)'; roundRect(bx, by, bw, bh, 4.5 * S); ctx.fill();
-    ctx.strokeStyle = kind === 'me' ? '#26344f' : '#3f86e0'; ctx.lineWidth = Math.max(1, S * 0.7); ctx.stroke();
-    ctx.fillStyle = '#26344f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, mx * S, by + bh / 2 + S * 0.4);
+    ctx.font = `${6 * S}px Jua, "Gowun Dodum", sans-serif`;
+    const c = colorOf(color), dot = 4.2 * S;
+    const tw = ctx.measureText(text).width, bw = tw + dot + 11 * S, bh = 10.5 * S, bx = mx * S - bw / 2, by = top * S;
+    ctx.fillStyle = kind === 'me' ? 'rgba(255,216,74,0.97)' : 'rgba(255,255,255,0.96)'; roundRect(bx, by, bw, bh, 5 * S); ctx.fill();
+    ctx.strokeStyle = '#26344f'; ctx.lineWidth = Math.max(1.5, S * 0.8); ctx.stroke();
+    ctx.fillStyle = c.body; ctx.beginPath(); ctx.arc(bx + 5.5 * S, by + bh / 2, dot / 2 + S, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = c.shade; ctx.stroke();
+    ctx.fillStyle = '#26344f'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(text, bx + dot + 7.5 * S, by + bh / 2 + S * 0.4);
   }
   function drawNpcLabel(n, cx, cy) {
     const p = prof(); if (!p) return;
@@ -570,7 +584,7 @@
   // ================= 함께 탐험 (실시간) =================
   function netMine() {
     const p = prof();
-    return { n: p ? p.nick : '대원', x: Math.round(hero.x), y: Math.round(hero.y), f: hero.face, m: hero.moving ? 1 : 0, q: mode === 'quiz' ? 1 : 0, e: hero.emoteT > 0 ? hero.emote : '', w: myWear(), b: doneCount(p, MISSIONS) };
+    return { n: p ? p.nick : '대원', x: Math.round(hero.x), y: Math.round(hero.y), f: hero.face, m: hero.moving ? 1 : 0, q: mode === 'quiz' ? 1 : 0, e: hero.emoteT > 0 ? hero.emote : '', w: myWear(), c: myColor(), u: p ? p.uid : '', b: doneCount(p, MISSIONS) };
   }
   let lastNet = '';
   function netChanged() {
@@ -582,7 +596,13 @@
       lastNet = st;
     }
   }
-  function netStart() { if (!settings.net) { Net.leave(); return; } Net.start(settings.room || '바다', netMine, netChanged); }
+  function netStart() { if (!settings.net) { Net.leave(); return; } Net.start(settings.room || '바다', netMine, netChanged, onNetColor); }
+  // 방장이 '같은 방에서 겹친다'며 다른 색을 정해 주면, 그 색을 저장해서 다음에도 써요
+  function onNetColor(c) {
+    const p = prof(); if (!p || !PX.COLOR_BY_ID[c] || p.color === c) return;
+    p.color = c; save(); updateHud();
+    toast(`🎨 같은 방 친구와 색이 겹쳐서 내 바다표범이 ${colorOf(c).icon} ${colorOf(c).name}이 되었어요!`, 4500);
+  }
   $('hudNet').onclick = () => {
     if (mode !== 'play') return;
     const st = Net.status;
@@ -632,7 +652,7 @@
     for (const p of players) {
       const b = document.createElement('button'); b.className = 'cbtn';
       const n = doneCount(p, MISSIONS);
-      b.innerHTML = `<img alt="" src="${PX.sealUrl(Shop.cleanWear(p.wear), 'idle', 2)}"><span class="cn"></span><span class="cs">${'★'.repeat(n)}${'☆'.repeat(6 - n)} · 🪙${p.coins || 0}</span>`;
+      b.innerHTML = `<img alt="" src="${PX.sealUrl(Shop.cleanWear(p.wear), 'idle', 2, p.color)}"><span class="cn"></span><span class="cs">${'★'.repeat(n)}${'☆'.repeat(6 - n)} · 🪙${p.coins || 0}</span>`;
       b.querySelector('.cn').textContent = p.nick;
       b.onclick = () => startAs(p.nick);
       list.appendChild(b);
@@ -675,7 +695,7 @@
   }
 
   // ================= 상점 · 메뉴 · 도움말 =================
-  Shop.init({ prof, save, sfx, onChange: () => { updateHud(); Net.status === 'on' && Net.tick(1); }, onClose: () => { mode = 'play'; updateHud(); } });
+  Shop.init({ prof, save, sfx, color: myColor, onChange: () => { updateHud(); Net.status === 'on' && Net.tick(1); }, onClose: () => { mode = 'play'; updateHud(); } });
   $('btnShop').onclick = () => { if (mode !== 'play') return; mode = 'quiz'; Shop.open(); };
   $('btnMenu').onclick = () => { if (mode !== 'play') return; mode = 'quiz'; $('menu').hidden = false; $('menuName').textContent = prof() ? `${prof().nick} 대원 · 🪙 ${prof().coins || 0}` : ''; $('menuNet').textContent = settings.net && Net.status === 'on' ? '🦭 혼자 하기로 바꾸기' : `🌊 친구 방(${settings.room || '바다'})에 연결하기`; };
   $('menuClose').onclick = () => { $('menu').hidden = true; mode = 'play'; };
@@ -723,5 +743,5 @@
 
   // 자동 테스트용: 친구를 눌렀을 때와 같은 방식으로 걸어가기
   function walkToNpc(id) { const n = NPC[id]; const g = approachPoint(n); hero.path = World.findPath(hero.x, hero.y, g[0], g[1]); hero.pending = n; return hero.path.length; }
-  window.AIX = { get store() { return store; }, prof, hero, NPC, interact, nearNpc, walkToNpc, get mode() { return mode; }, fmtTime, resultCode, heroUrl: (fr) => PX.sealUrl(myWear(), fr, 4), MISSIONS };
+  window.AIX = { get store() { return store; }, prof, hero, NPC, interact, nearNpc, walkToNpc, get mode() { return mode; }, fmtTime, resultCode, heroUrl: (fr) => PX.sealUrl(myWear(), fr, 4, myColor()), MISSIONS, myColor };
 })();
