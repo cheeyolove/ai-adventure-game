@@ -679,8 +679,27 @@
     settings.net = $('netOn').checked; settings.room = room || '바다'; saveSettings();
     startAs(nick);
   });
+  // 코딩 탐험대(coding-adventure.html)에서 받은 코인: 그 게임은 자기 저장소에 '받을 코인'만 적고,
+  // 여기서 id별로 한 번만 더해요. (두 화면이 동시에 열려 있어도 코인이 사라지거나 두 번 들어가지 않아요)
+  function applyCodingCoins() {
+    const p = prof(); if (!p) return;
+    let cs = null; try { cs = JSON.parse(localStorage.getItem('ai-explorers:coding') || 'null'); } catch (e) { }
+    const grants = cs && cs.players && cs.players[p.nick] && cs.players[p.nick].grants; if (!grants) return;
+    p.codingApplied = p.codingApplied || {};
+    let add = 0;
+    for (const [id, amt] of Object.entries(grants)) {
+      const n = Math.max(0, Math.min(30, Math.round(Number(amt) || 0)));
+      if (!/^code:(s1|s2|s3|all)$/.test(id) || p.codingApplied[id] || !n) continue;
+      p.codingApplied[id] = true; p.coins = (p.coins || 0) + n; add += n;
+      p.coinLog = (p.coinLog || []).concat({ at: Date.now(), amt: n, why: '코딩 탐험대 ' + ({ 'code:s1': '스테이지 1', 'code:s2': '스테이지 2', 'code:s3': '스테이지 3', 'code:all': '전체 클리어' }[id]) }).slice(-60);
+    }
+    if (add) { save(); updateHud(); toast(`🧩 코딩 탐험대에서 받은 코인 +${add}! 🛍️ 상점에서 쓸 수 있어요.`, 4500); }
+  }
+  window.addEventListener('focus', () => { if (mode !== 'title') applyCodingCoins(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && mode !== 'title') applyCodingCoins(); });
   function startAs(nick) {
     store.current = nick; const p = prof(); p.lastAt = Date.now(); save();
+    setTimeout(applyCodingCoins, 600);
     $('title').hidden = true; $('nameScreen').hidden = true;
     $('hud').hidden = false; $('dpad').hidden = false;
     if (p.pos && canStand(p.pos[0], p.pos[1])) { hero.x = p.pos[0]; hero.y = p.pos[1]; } else { hero.x = START[0]; hero.y = START[1]; }
@@ -696,7 +715,7 @@
 
   // ================= 상점 · 메뉴 · 도움말 =================
   Shop.init({ prof, save, sfx, color: myColor, onChange: () => { updateHud(); Net.status === 'on' && Net.tick(1); }, onClose: () => { mode = 'play'; updateHud(); } });
-  $('btnShop').onclick = () => { if (mode !== 'play') return; mode = 'quiz'; Shop.open(); };
+  $('btnShop').onclick = () => { if (mode !== 'play') return; applyCodingCoins(); mode = 'quiz'; Shop.open(); };
   $('btnMenu').onclick = () => { if (mode !== 'play') return; mode = 'quiz'; $('menu').hidden = false; $('menuName').textContent = prof() ? `${prof().nick} 대원 · 🪙 ${prof().coins || 0}` : ''; $('menuNet').textContent = settings.net && Net.status === 'on' ? '🦭 혼자 하기로 바꾸기' : `🌊 친구 방(${settings.room || '바다'})에 연결하기`; };
   $('menuClose').onclick = () => { $('menu').hidden = true; mode = 'play'; };
   $('menuPromise').onclick = () => { $('menu').hidden = true; Missions.open('intro', { nick: prof().nick, sfx, review: true, onFinish: () => { mode = 'play'; }, onClose: () => { mode = 'play'; } }); };

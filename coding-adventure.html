@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#8fd8ea">
+<meta name="color-scheme" content="only light">
+<meta name="description" content="초등 3~4학년 블록코딩 기초 횡스크롤 게임 — 블록을 연결하고 실행해요!">
+<title>코딩 탐험대: 블록의 마법</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="css/coding.css">
+</head>
+<body>
+<div id="stage"><canvas id="cv" aria-label="코딩 섬 지도"></canvas>
+  <div id="hud" hidden>
+    <div class="hl"><a class="hbtn home" href="index.html" aria-label="AI 탐험대로 돌아가기">🏝️</a><button id="btnStages" class="hbtn" type="button" aria-label="스테이지 고르기">🗺️</button><span id="hudStage" class="pill"></span></div>
+    <div class="hr"><span class="pill coin">🪙 <b id="hudCoins">0</b></span><span class="pill" id="hudStars">✦ 0</span><button id="btnSound" class="hbtn" type="button" aria-label="소리">🔊</button><button id="btnHelp" class="hbtn" type="button" aria-label="도움말">❔</button></div>
+  </div>
+  <div id="pad" hidden>
+    <button type="button" data-k="l" aria-label="왼쪽">◀</button><button type="button" data-k="r" aria-label="오른쪽">▶</button>
+  </div>
+  <div id="pad2" hidden>
+    <button type="button" id="btnPuzzle" class="puz" hidden>🧩 퍼즐 열기 <kbd>E</kbd></button>
+    <button type="button" id="btnJump" class="jump" aria-label="점프">⤴<span>점프</span></button>
+  </div>
+  <div id="toast" hidden role="status"></div>
+</div>
+
+<!-- 블록 조립 영역 -->
+<section id="editor" hidden aria-label="블록 조립 영역">
+  <header class="ehead">
+    <div class="etitle"><span id="eStage"></span><b id="eTitle"></b></div>
+    <button id="eClose" class="ebtn x" type="button" aria-label="퍼즐 닫기">✕</button>
+  </header>
+  <p id="eGoal" class="egoal"></p>
+  <div id="blockly"></div>
+  <div class="erun">
+    <button id="eRun" class="ebtn run" type="button">▶ 실행</button>
+    <button id="eReset" class="ebtn" type="button">↺ 처음 위치로</button>
+    <button id="eClear" class="ebtn" type="button">🧹 블록 처음으로</button>
+    <button id="eSpeed" class="ebtn" type="button">🐢 보통</button>
+    <button id="eHint" class="ebtn hint" type="button">💡 힌트</button>
+  </div>
+  <div id="eMsg" class="emsg" aria-live="polite"></div>
+</section>
+
+<!-- 시작: 별명 고르기 -->
+<section id="who" class="screen scroll">
+  <div class="box">
+    <h1>🧩 코딩 탐험대</h1><p class="sub">블록의 마법</p>
+    <img id="whoSeal" class="bigseal" alt="">
+    <p>AI 탐험대에서 쓰던 별명을 고르면 바다표범 모습과 코인이 이어져요.</p>
+    <div id="whoList" class="chips"></div>
+    <form id="whoForm" class="row"><input id="whoNick" maxlength="10" placeholder="새 별명 (실명 말고 별명!)" aria-label="새 별명"><button class="btn primary" type="submit">시작 ▶</button></form>
+    <p id="whoErr" class="err"></p>
+    <a class="small" href="index.html">◀ AI 탐험대로 돌아가기</a>
+  </div>
+</section>
+
+<!-- 스테이지 고르기 -->
+<section id="select" class="screen scroll" hidden>
+  <div class="box wide">
+    <h2>🗺️ 코딩 섬 지도</h2>
+    <p class="sub small" id="selWho"></p>
+    <div id="selList" class="stages"></div>
+    <div class="row"><button id="btnCert" class="btn primary" type="button" hidden>🏅 코딩 탐험대 인증서</button><button id="btnWho" class="btn" type="button">👥 별명 바꾸기</button></div>
+    <p class="small note">이 게임의 블록은 블록코딩의 기초를 연습하려고 만든 학습용 블록이에요. 엔트리·KT AI 코디니의 공식 블록 이름과 다를 수 있어요.</p>
+  </div>
+</section>
+
+<!-- 대화 -->
+<section id="talk" class="screen modal" hidden>
+  <div class="box talkbox"><img id="talkPic" alt=""><div><b id="talkName"></b><p id="talkText"></p></div><button id="talkNext" class="btn primary" type="button">다음 ▶</button></div>
+</section>
+
+<!-- 배지 -->
+<section id="badge" class="screen modal" hidden>
+  <div class="box"><p class="mtop">스테이지 완료!</p><div class="bicon" id="badgeIc"></div><h2 id="badgeName"></h2><p id="badgeLearn"></p><p id="badgeCoin" class="coinline" hidden></p><img id="badgeSeal" class="midseal" alt=""><button id="badgeOk" class="btn primary big" type="button">좋아요! ▶</button></div>
+</section>
+
+<!-- 인증서 -->
+<section id="cert" class="screen modal scroll" hidden>
+  <div class="box cert">
+    <p class="ctop">🌊 코딩 섬 🌊</p><h2>코딩 탐험대 인증서</h2>
+    <img id="certSeal" class="bigseal" alt=""><p class="cname"><span id="certName"></span> 대원</p>
+    <p class="cmsg"><b>축하해요! 이제 블록을 연결하고 실행할 수 있어요!</b></p>
+    <div id="certBadges" class="cbadges"></div>
+    <h3>🎹 실제 블록코딩 수업과 이어져요</h3>
+    <table class="link"><thead><tr><th>게임에서 배운 것</th><th>실제 블록코딩 수업(예: AI 코디니)에서</th></tr></thead><tbody id="certLink"></tbody></table>
+    <p class="small note">이 게임은 엔트리나 KT AI 코디니가 아니라, 공통 블록코딩 원리를 연습하는 독립 게임이에요. 실제 프로그램의 블록 이름과 모양은 다를 수 있어요.</p>
+    <div class="row"><button id="certPrint" class="btn" type="button">🖨️ 인쇄</button><button id="certClose" class="btn primary" type="button">닫기</button></div>
+  </div>
+</section>
+
+<section id="help" class="screen modal" hidden>
+  <div class="box"><h2>❔ 이렇게 해요</h2>
+    <p><b>💻 컴퓨터</b>: ← → 이동 · 스페이스바 점프 · E 퍼즐 열기 · 마우스로 블록 끌기</p>
+    <p><b>📱 태블릿</b>: ◀ ▶ 이동 · ⤴ 점프 · 🧩 퍼즐 열기 · 손가락으로 블록 끌기</p>
+    <p>블록은 <b>▶ 시작하기</b> 아래에 딱 붙여야 실행돼요. 실행 중인 블록은 노랗게 빛나요.</p>
+    <p>블록을 빼려면 끌어서 왼쪽 블록 상자나 🗑로 보내요.</p>
+    <button id="helpClose" class="btn primary" type="button">알겠어요 ▶</button></div>
+</section>
+
+<section id="numPick" class="screen modal" hidden>
+  <div class="box"><h2>🔁 몇 번 반복할까요?</h2><div id="numGrid" class="numgrid"></div><button id="numCancel" class="btn" type="button">취소</button></div>
+</section>
+
+<div id="fx" aria-hidden="true"></div>
+
+<script src="js/config.js"></script>
+<script src="js/pixel.js"></script>
+<script src="js/shop.js"></script>
+<script src="vendor/blockly/blockly_compressed.js"></script>
+<script src="vendor/blockly/msg/ko.js"></script>
+<script src="js/coding/engine.js"></script>
+<script src="js/coding/levels.js"></script>
+<script src="js/coding/blocks.js"></script>
+<script src="js/coding/game.js"></script>
+</body>
+</html>

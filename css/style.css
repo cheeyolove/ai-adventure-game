@@ -665,3 +665,8 @@ kbd { font-family: var(--fd); background: #fff; border: 2px solid var(--ink); bo
   .netpick { padding: 6px 10px; }
   .btn.big { min-height: 54px; padding: 10px 22px; font-size: 20px; }
 }
+
+/* 코딩 탐험대 바로가기 */
+a.btn { text-decoration: none; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-family: var(--fd); }
+.btn.coding { background: #c9f2e3; }
+.menubox a.btn { width: 100%; }
